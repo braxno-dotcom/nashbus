@@ -1,0 +1,32 @@
+{
+  "nav": {
+    "title": "NashBus",
+    "language": "Limba"
+  },
+  "hero": {
+    "title": "Transport Ucraina — Europa — Moldova",
+    "subtitle": "Găsiți curse, trimiteți colete — simplu și comod"
+  },
+  "actions": {
+    "findTrip": "Găsește cursă",
+    "sendParcel": "Trimite colet"
+  },
+  "search": {
+    "from": "Orașul de plecare",
+    "to": "Orașul de sosire",
+    "date": "Data",
+    "submit": "Căutare"
+  },
+  "trips": {
+    "title": "Curse apropiate",
+    "pickupPoint": "Punct de colectare pe hartă",
+    "seats": "locuri",
+    "parcels": "Colete",
+    "book": "Rezervă"
+  },
+  "languages": {
+    "uk": "Українська",
+    "ru": "Русский",
+    "ro": "Română"
+  }
+}

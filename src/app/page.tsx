@@ -1,7 +1,6 @@
-export default function Home() {
-  return (
-    <main className="min-h-screen flex items-center justify-center">
-      <h1 className="text-4xl font-bold">BusHub</h1>
-    </main>
-  );
+import { redirect } from "next/navigation";
+import { i18n } from "@/i18n/config";
+
+export default function RootPage() {
+  redirect(`/${i18n.defaultLocale}`);
 }
