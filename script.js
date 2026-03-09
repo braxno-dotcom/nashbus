@@ -92,13 +92,20 @@ function navigate(page) {
   return false;
 }
 
-// ==================== Demo Trips ====================
-const TRIPS = [
+// ==================== Trips (localStorage + demo fallback) ====================
+var DEFAULT_TRIPS = [
   { id: "1", carrier: "EuroTrans", fromKey: "paris", toKey: "kyiv", date: "15.03.2026", departure: "06:00", arrival: "14:00+1", duration: "32h", price: "€95", seats: 14, parcels: true, pickupLat: 48.8566, pickupLng: 2.3522, phone: "+380501234567", waypoints: ["strasbourg","nuremberg","prague","krakow","lviv","ternopil","zhytomyr"] },
   { id: "2", carrier: "BerlinLvivBus", fromKey: "berlin", toKey: "lviv", date: "16.03.2026", departure: "18:00", arrival: "16:00+1", duration: "22h", price: "€75", seats: 10, parcels: true, pickupLat: 52.52, pickupLng: 13.405, phone: "+380671234567", waypoints: ["wroclaw","katowice","krakow","rzeszow","ivanofrankivsk"] },
   { id: "3", carrier: "WarszawaOdesa", fromKey: "warsaw", toKey: "odesa", date: "17.03.2026", departure: "07:00", arrival: "08:00+1", duration: "25h", price: "€80", seats: 8, parcels: true, pickupLat: 52.2297, pickupLng: 21.0122, phone: "+380931234567", waypoints: ["lublin","lviv","ternopil","vinnytsya","kyiv","mykolaiv"] },
   { id: "4", carrier: "MoldovaExpress", fromKey: "chisinau", toKey: "chernivtsi", date: "18.03.2026", departure: "06:30", arrival: "14:00", duration: "7.5h", price: "€30", seats: 6, parcels: false, pickupLat: 47.0105, pickupLng: 28.8638, phone: "+373691234567", waypoints: ["tiraspol","odesa","iasi","suceava","siret"] }
 ];
+var TRIPS_KEY = "nashbus_trips";
+function loadTrips() {
+  var saved = localStorage.getItem(TRIPS_KEY);
+  return saved ? JSON.parse(saved) : DEFAULT_TRIPS;
+}
+function saveTrips(list) { localStorage.setItem(TRIPS_KEY, JSON.stringify(list)); }
+var TRIPS = loadTrips();
 
 let searchActive = false;
 let openMenuId = null;

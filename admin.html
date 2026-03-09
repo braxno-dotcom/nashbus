@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+  <title>NashBus — Админ-панель</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-header { background: #1e293b; }
+    .admin-body { padding: 48px 16px 32px; }
+    .admin-title { font-size: 14px; font-weight: 700; color: #1f2937; margin-bottom: 4px; }
+    .admin-sub { font-size: 10px; color: #9ca3af; margin-bottom: 16px; }
+    .trip-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    .trip-table th { background: #f1f5f9; font-size: 10px; font-weight: 600; color: #64748b; padding: 6px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    .trip-table td { font-size: 11px; padding: 8px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .trip-table tr:hover td { background: #f8fafc; }
+    .wp-tags { display: flex; flex-wrap: wrap; gap: 2px; }
+    .wp-tag { background: #eff6ff; color: #2563eb; font-size: 9px; padding: 1px 4px; border-radius: 3px; }
+    .actions-cell { display: flex; gap: 4px; }
+    .btn-edit { background: #2563eb; color: #fff; font-size: 10px; font-weight: 600; padding: 4px 8px; border-radius: 4px; border: none; }
+    .btn-edit:hover { background: #1d4ed8; }
+    .btn-del { background: #fef2f2; color: #dc2626; font-size: 10px; font-weight: 600; padding: 4px 8px; border-radius: 4px; border: none; }
+    .btn-del:hover { background: #fee2e2; }
+    .btn-reset-demo { background: #f1f5f9; color: #64748b; font-size: 10px; font-weight: 500; padding: 6px 12px; border-radius: 6px; border: none; margin-left: 8px; }
+    .btn-reset-demo:hover { background: #e2e8f0; }
+    .form-section { margin-bottom: 16px; }
+    .form-section label { display: block; font-size: 10px; font-weight: 600; color: #64748b; margin-bottom: 2px; }
+    .wp-input-row { display: flex; gap: 4px; margin-bottom: 4px; }
+    .wp-input-row input { flex: 1; }
+    .wp-input-row button { flex-shrink: 0; }
+    .stat-row { display: flex; gap: 12px; margin-bottom: 16px; }
+    .stat-card { flex: 1; background: #fff; border: 1px solid #f3f4f6; border-radius: 8px; padding: 10px; text-align: center; }
+    .stat-num { font-size: 20px; font-weight: 700; color: #2563eb; }
+    .stat-label { font-size: 10px; color: #9ca3af; }
+    .checkbox-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .checkbox-row input[type=checkbox] { width: auto; }
+    .checkbox-row label { font-size: 11px; color: #374151; margin: 0; }
+    @media (max-width: 768px) {
+      .trip-table, .trip-table thead, .trip-table tbody, .trip-table th, .trip-table td, .trip-table tr { display: block; }
+      .trip-table thead { display: none; }
+      .trip-table td { padding: 4px 8px; border: none; font-size: 11px; }
+      .trip-table td:before { content: attr(data-label); font-weight: 600; color: #64748b; display: inline-block; width: 90px; font-size: 10px; }
+      .trip-table tr { border-bottom: 1px solid #e2e8f0; padding: 8px 0; margin-bottom: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<header id="header" class="admin-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17a2 2 0 002 2h4a2 2 0 002-2M8 17H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3M8 17v2m8-2v2M3 11h18M7 7h.01M17 7h.01"/></svg>
+      NashBus
+    </a>
+    <div class="header-actions">
+      <span style="color:#facc15;font-size:10px;font-weight:700;padding:4px 8px;background:rgba(250,204,21,.15);border-radius:4px">ADMIN</span>
+      <a href="index.html" style="color:#fff;font-size:10px;padding:4px 8px">← На сайт</a>
+    </div>
+  </div>
+</header>
+
+<div class="admin-body">
+  <div class="container">
+    <h1 class="admin-title">Управление рейсами</h1>
+    <p class="admin-sub">Добавляйте, редактируйте и удаляйте рейсы. Изменения мгновенно появятся на главной странице.</p>
+
+    <!-- Stats -->
+    <div class="stat-row" id="stats"></div>
+
+    <!-- Add/Edit Form -->
+    <div class="card" id="form-card">
+      <h3 id="form-title">Добавить рейс</h3>
+      <p class="subtitle">Заполните поля и нажмите «Сохранить»</p>
+      <form id="admin-trip-form" onsubmit="saveTrip(event)">
+        <input type="hidden" id="edit-id" value="">
+        <div class="grid-2">
+          <div class="form-section"><label>Перевозчик</label><input type="text" id="f-carrier" placeholder="EuroTrans" required></div>
+          <div class="form-section"><label>Телефон</label><input type="tel" id="f-phone" placeholder="+380..." required></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-section"><label>Откуда (ключ города)</label><input type="text" id="f-from" placeholder="paris" required></div>
+          <div class="form-section"><label>Куда (ключ города)</label><input type="text" id="f-to" placeholder="kyiv" required></div>
+        </div>
+        <div class="form-section">
+          <label>Промежуточные остановки (ключи через запятую)</label>
+          <input type="text" id="f-waypoints" placeholder="strasbourg, nuremberg, prague, krakow, lviv">
+        </div>
+        <div class="grid-3">
+          <div class="form-section"><label>Дата (ДД.ММ.ГГГГ)</label><input type="text" id="f-date" placeholder="15.03.2026" required></div>
+          <div class="form-section"><label>Отправление</label><input type="text" id="f-departure" placeholder="06:00" required></div>
+          <div class="form-section"><label>Прибытие</label><input type="text" id="f-arrival" placeholder="14:00+1" required></div>
+        </div>
+        <div class="grid-3">
+          <div class="form-section"><label>В пути</label><input type="text" id="f-duration" placeholder="32h" required></div>
+          <div class="form-section"><label>Цена</label><input type="text" id="f-price" placeholder="€95" required></div>
+          <div class="form-section"><label>Мест</label><input type="number" id="f-seats" placeholder="14" min="1" required></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-section"><label>Широта (pickup)</label><input type="text" id="f-lat" placeholder="48.8566"></div>
+          <div class="form-section"><label>Долгота (pickup)</label><input type="text" id="f-lng" placeholder="2.3522"></div>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="f-parcels">
+          <label for="f-parcels">Принимает посылки</label>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button type="submit" class="btn-primary">Сохранить</button>
+          <button type="button" onclick="cancelEdit()" class="btn-reset-demo" style="flex:none;padding:8px 16px">Отмена</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Trips table -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <h3>Все рейсы</h3>
+        <button onclick="resetToDemo()" class="btn-reset-demo">Сбросить на демо-данные</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="trip-table">
+          <thead>
+            <tr>
+              <th>Перевозчик</th>
+              <th>Маршрут</th>
+              <th>Остановки</th>
+              <th>Дата</th>
+              <th>Цена</th>
+              <th>Мест</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody id="trips-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== Shared keys ====================
+var TRIPS_KEY = "nashbus_trips";
+var DEFAULT_TRIPS = [
+  { id: "1", carrier: "EuroTrans", fromKey: "paris", toKey: "kyiv", date: "15.03.2026", departure: "06:00", arrival: "14:00+1", duration: "32h", price: "€95", seats: 14, parcels: true, pickupLat: 48.8566, pickupLng: 2.3522, phone: "+380501234567", waypoints: ["strasbourg","nuremberg","prague","krakow","lviv","ternopil","zhytomyr"] },
+  { id: "2", carrier: "BerlinLvivBus", fromKey: "berlin", toKey: "lviv", date: "16.03.2026", departure: "18:00", arrival: "16:00+1", duration: "22h", price: "€75", seats: 10, parcels: true, pickupLat: 52.52, pickupLng: 13.405, phone: "+380671234567", waypoints: ["wroclaw","katowice","krakow","rzeszow","ivanofrankivsk"] },
+  { id: "3", carrier: "WarszawaOdesa", fromKey: "warsaw", toKey: "odesa", date: "17.03.2026", departure: "07:00", arrival: "08:00+1", duration: "25h", price: "€80", seats: 8, parcels: true, pickupLat: 52.2297, pickupLng: 21.0122, phone: "+380931234567", waypoints: ["lublin","lviv","ternopil","vinnytsya","kyiv","mykolaiv"] },
+  { id: "4", carrier: "MoldovaExpress", fromKey: "chisinau", toKey: "chernivtsi", date: "18.03.2026", departure: "06:30", arrival: "14:00", duration: "7.5h", price: "€30", seats: 6, parcels: false, pickupLat: 47.0105, pickupLng: 28.8638, phone: "+373691234567", waypoints: ["tiraspol","odesa","iasi","suceava","siret"] }
+];
+
+function loadTrips() {
+  var s = localStorage.getItem(TRIPS_KEY);
+  return s ? JSON.parse(s) : DEFAULT_TRIPS;
+}
+function saveTrips(list) { localStorage.setItem(TRIPS_KEY, JSON.stringify(list)); }
+
+var trips = loadTrips();
+
+// ==================== Render ====================
+function renderTable() {
+  var tbody = document.getElementById("trips-tbody");
+  tbody.innerHTML = trips.map(function(t) {
+    var wps = (t.waypoints || []).map(function(w) { return '<span class="wp-tag">' + w + '</span>'; }).join("");
+    return '<tr>' +
+      '<td data-label="Перевозчик">' + t.carrier + '</td>' +
+      '<td data-label="Маршрут"><strong>' + t.fromKey + '</strong> → <strong>' + t.toKey + '</strong></td>' +
+      '<td data-label="Остановки"><div class="wp-tags">' + (wps || '—') + '</div></td>' +
+      '<td data-label="Дата">' + t.date + '<br><span style="color:#9ca3af;font-size:9px">' + t.departure + ' → ' + t.arrival + '</span></td>' +
+      '<td data-label="Цена"><strong>' + t.price + '</strong></td>' +
+      '<td data-label="Мест">' + t.seats + '</td>' +
+      '<td data-label="Действия"><div class="actions-cell"><button class="btn-edit" onclick="editTrip(\'' + t.id + '\')">✎</button><button class="btn-del" onclick="deleteTrip(\'' + t.id + '\')">✕</button></div></td>' +
+      '</tr>';
+  }).join("");
+  renderStats();
+}
+
+function renderStats() {
+  var total = trips.length;
+  var totalSeats = trips.reduce(function(s, t) { return s + t.seats; }, 0);
+  var withParcels = trips.filter(function(t) { return t.parcels; }).length;
+  document.getElementById("stats").innerHTML =
+    '<div class="stat-card"><div class="stat-num">' + total + '</div><div class="stat-label">Рейсов</div></div>' +
+    '<div class="stat-card"><div class="stat-num">' + totalSeats + '</div><div class="stat-label">Мест всего</div></div>' +
+    '<div class="stat-card"><div class="stat-num">' + withParcels + '</div><div class="stat-label">С посылками</div></div>';
+}
+
+// ==================== CRUD ====================
+function saveTrip(e) {
+  e.preventDefault();
+  var editId = document.getElementById("edit-id").value;
+  var wpRaw = document.getElementById("f-waypoints").value;
+  var waypoints = wpRaw ? wpRaw.split(",").map(function(s) { return s.trim(); }).filter(Boolean) : [];
+  var trip = {
+    id: editId || Date.now().toString(36),
+    carrier: document.getElementById("f-carrier").value,
+    fromKey: document.getElementById("f-from").value.trim(),
+    toKey: document.getElementById("f-to").value.trim(),
+    date: document.getElementById("f-date").value,
+    departure: document.getElementById("f-departure").value,
+    arrival: document.getElementById("f-arrival").value,
+    duration: document.getElementById("f-duration").value,
+    price: document.getElementById("f-price").value,
+    seats: parseInt(document.getElementById("f-seats").value) || 1,
+    parcels: document.getElementById("f-parcels").checked,
+    pickupLat: parseFloat(document.getElementById("f-lat").value) || 0,
+    pickupLng: parseFloat(document.getElementById("f-lng").value) || 0,
+    phone: document.getElementById("f-phone").value,
+    waypoints: waypoints
+  };
+  if (editId) {
+    var idx = trips.findIndex(function(t) { return t.id === editId; });
+    if (idx !== -1) trips[idx] = trip;
+  } else {
+    trips.push(trip);
+  }
+  saveTrips(trips);
+  cancelEdit();
+  renderTable();
+}
+
+function editTrip(id) {
+  var t = trips.find(function(x) { return x.id === id; });
+  if (!t) return;
+  document.getElementById("edit-id").value = t.id;
+  document.getElementById("f-carrier").value = t.carrier;
+  document.getElementById("f-phone").value = t.phone;
+  document.getElementById("f-from").value = t.fromKey;
+  document.getElementById("f-to").value = t.toKey;
+  document.getElementById("f-waypoints").value = (t.waypoints || []).join(", ");
+  document.getElementById("f-date").value = t.date;
+  document.getElementById("f-departure").value = t.departure;
+  document.getElementById("f-arrival").value = t.arrival;
+  document.getElementById("f-duration").value = t.duration;
+  document.getElementById("f-price").value = t.price;
+  document.getElementById("f-seats").value = t.seats;
+  document.getElementById("f-parcels").checked = t.parcels;
+  document.getElementById("f-lat").value = t.pickupLat || "";
+  document.getElementById("f-lng").value = t.pickupLng || "";
+  document.getElementById("form-title").textContent = "Редактировать рейс: " + t.carrier;
+  document.getElementById("form-card").scrollIntoView({ behavior: "smooth" });
+}
+
+function deleteTrip(id) {
+  if (!confirm("Удалить этот рейс?")) return;
+  trips = trips.filter(function(t) { return t.id !== id; });
+  saveTrips(trips);
+  renderTable();
+}
+
+function cancelEdit() {
+  document.getElementById("edit-id").value = "";
+  document.getElementById("admin-trip-form").reset();
+  document.getElementById("form-title").textContent = "Добавить рейс";
+}
+
+function resetToDemo() {
+  if (!confirm("Сбросить все рейсы на демо-данные? Текущие будут потеряны.")) return;
+  trips = JSON.parse(JSON.stringify(DEFAULT_TRIPS));
+  saveTrips(trips);
+  renderTable();
+}
+
+// ==================== Init ====================
+renderTable();
+</script>
+</body>
+</html>
