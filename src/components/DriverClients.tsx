@@ -8,6 +8,7 @@ import {
   findClientByName,
   type ClientRecord,
 } from "@/lib/clients-storage";
+import { getActiveTrip } from "@/components/AddTripForm";
 
 type Dict = Awaited<ReturnType<typeof import("@/i18n/get-dictionary").getDictionary>>;
 
@@ -234,7 +235,7 @@ export default function DriverClients({ dict, driverId }: { dict: Dict; driverId
               )}
 
               <button
-                onClick={() => { setReceiptClient(client); setBusNumber(""); setRouteFrom(""); setRouteTo(""); setRouteDate(""); }}
+                onClick={() => { const trip = getActiveTrip(); setReceiptClient(client); setRouteFrom(trip?.from ?? ""); setRouteTo(trip?.to ?? ""); setRouteDate(trip?.date ?? ""); setBusNumber(trip?.busNumber ?? ""); }}
                 className="w-full py-1.5 rounded bg-green-500 text-white text-[10px] font-bold hover:bg-green-600 active:scale-[0.98] transition-all flex items-center justify-center gap-1 mt-1"
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
