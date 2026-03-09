@@ -33,7 +33,9 @@
     "bookMessage": "Bună ziua! Sunt interesat de cursa {from} — {to} din {date}. Mai sunt locuri libere?",
     "call": "Sună",
     "saved": "Salvat",
-    "removed": "Eliminat din salvate"
+    "removed": "Eliminat din salvate",
+    "route": "Traseu",
+    "noResults": "Nu s-au găsit curse"
   },
   "ad": {
     "title": "Asigurare de călătorie",
@@ -51,7 +53,10 @@
     "pickupMap": "Punct de colectare (link Google Maps)",
     "phone": "Telefonul dvs. (Viber/WhatsApp)",
     "submit": "Publică cursa",
-    "success": "Cursa a fost adăugată!"
+    "success": "Cursa a fost adăugată!",
+    "waypoints": "Opriri intermediare",
+    "addWaypoint": "Adaugă oprire",
+    "removeWaypoint": "Șterge"
   },
   "clients": {
     "title": "Clienții mei",
@@ -75,7 +80,8 @@
     "routeDate": "Data cursei",
     "delete": "Șterge",
     "generateReceipt": "Generează chitanță",
-    "via": "Trimite prin"
+    "via": "Trimite prin",
+    "selectCity": "Selectați orașul"
   },
   "auth": {
     "title": "Autentificare șofer",

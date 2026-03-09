@@ -1,8 +1,7 @@
 import { getDictionary } from "@/i18n/get-dictionary";
 import type { Locale } from "@/i18n/config";
 import Header from "@/components/Header";
-import SearchForm from "@/components/SearchForm";
-import TripCard from "@/components/TripCard";
+import TripSearch from "@/components/TripSearch";
 import AddTripForm from "@/components/AddTripForm";
 import AdSlot from "@/components/AdSlot";
 
@@ -22,6 +21,7 @@ const SAMPLE_TRIPS = [
     pickupLat: 48.8566,
     pickupLng: 2.3522,
     phone: "+380501234567",
+    waypoints: ["madrid", "chisinau"],
   },
   {
     id: "2",
@@ -38,6 +38,7 @@ const SAMPLE_TRIPS = [
     pickupLat: 40.4168,
     pickupLng: -3.7038,
     phone: "+380671234567",
+    waypoints: ["paris", "chernivtsi"],
   },
   {
     id: "3",
@@ -54,6 +55,7 @@ const SAMPLE_TRIPS = [
     pickupLat: 47.0105,
     pickupLng: 28.8638,
     phone: "+373691234567",
+    waypoints: [],
   },
 ];
 
@@ -89,32 +91,13 @@ export default async function Home({
         </div>
       </section>
 
-      {/* Search */}
-      <section id="search" className="px-4 -mt-5 relative z-10">
+      {/* Search + Trips (client component with smart filtering) */}
+      <TripSearch trips={SAMPLE_TRIPS} dict={dict} />
+
+      {/* Ad */}
+      <section className="px-4 pb-4">
         <div className="max-w-5xl mx-auto">
-          <SearchForm dict={dict} />
-        </div>
-      </section>
-
-      {/* Trips */}
-      <section className="px-4 py-4">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-sm font-bold text-gray-800 mb-3">
-            {dict.trips.title}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {/* Trip 1 */}
-            <TripCard trip={SAMPLE_TRIPS[0]} dict={dict} />
-
-            {/* Ad slot — spans full width on mobile, 1 col on desktop */}
-            <div className="sm:col-span-2 lg:col-span-3">
-              <AdSlot dict={dict} />
-            </div>
-
-            {/* Trip 2 & 3 */}
-            <TripCard trip={SAMPLE_TRIPS[1]} dict={dict} />
-            <TripCard trip={SAMPLE_TRIPS[2]} dict={dict} />
-          </div>
+          <AdSlot dict={dict} />
         </div>
       </section>
 

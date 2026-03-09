@@ -25,6 +25,7 @@ export default function DriverClients({ dict, driverId }: { dict: Dict; driverId
   const [routeFrom, setRouteFrom] = useState("");
   const [routeTo, setRouteTo] = useState("");
   const [routeDate, setRouteDate] = useState("");
+  const [routeCities, setRouteCities] = useState<string[]>([]);
 
   useEffect(() => {
     setClients(getClients(driverId));
@@ -235,7 +236,7 @@ export default function DriverClients({ dict, driverId }: { dict: Dict; driverId
               )}
 
               <button
-                onClick={() => { const trip = getActiveTrip(); setReceiptClient(client); setRouteFrom(trip?.from ?? ""); setRouteTo(trip?.to ?? ""); setRouteDate(trip?.date ?? ""); setBusNumber(trip?.busNumber ?? ""); }}
+                onClick={() => { const trip = getActiveTrip(); setReceiptClient(client); setRouteFrom(trip?.from ?? ""); setRouteTo(trip?.to ?? ""); setRouteDate(trip?.date ?? ""); setBusNumber(trip?.busNumber ?? ""); setRouteCities(trip ? [trip.from, ...(trip.waypoints || []), trip.to].filter(Boolean) : []); }}
                 className="w-full py-1.5 rounded bg-green-500 text-white text-[10px] font-bold hover:bg-green-600 active:scale-[0.98] transition-all flex items-center justify-center gap-1 mt-1"
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -264,8 +265,27 @@ export default function DriverClients({ dict, driverId }: { dict: Dict; driverId
             </div>
             <div className="space-y-2 mb-3">
               <div className="grid grid-cols-2 gap-2">
-                <input type="text" value={routeFrom} onChange={(e) => setRouteFrom(e.target.value)} placeholder={dict.clients.routeFrom} className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
-                <input type="text" value={routeTo} onChange={(e) => setRouteTo(e.target.value)} placeholder={dict.clients.routeTo} className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                {routeCities.length > 0 ? (
+                  <>
+                    <select value={routeFrom} onChange={(e) => setRouteFrom(e.target.value)} className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500">
+                      <option value="">{dict.clients.routeFrom}</option>
+                      {routeCities.map((city) => (
+                        <option key={`from-${city}`} value={city}>{city}</option>
+                      ))}
+                    </select>
+                    <select value={routeTo} onChange={(e) => setRouteTo(e.target.value)} className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500">
+                      <option value="">{dict.clients.routeTo}</option>
+                      {routeCities.map((city) => (
+                        <option key={`to-${city}`} value={city}>{city}</option>
+                      ))}
+                    </select>
+                  </>
+                ) : (
+                  <>
+                    <input type="text" value={routeFrom} onChange={(e) => setRouteFrom(e.target.value)} placeholder={dict.clients.routeFrom} className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                    <input type="text" value={routeTo} onChange={(e) => setRouteTo(e.target.value)} placeholder={dict.clients.routeTo} className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                  </>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <input type="date" value={routeDate} onChange={(e) => setRouteDate(e.target.value)} className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500" />

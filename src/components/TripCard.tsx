@@ -19,15 +19,28 @@ interface Trip {
   pickupLat: number;
   pickupLng: number;
   phone: string;
+  waypoints?: string[];
 }
+
+export type { Trip };
 
 export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
   const [fav, setFav] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [routeOpen, setRouteOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const from = (dict.cities as Record<string, string>)[trip.fromKey] || trip.fromKey;
-  const to = (dict.cities as Record<string, string>)[trip.toKey] || trip.toKey;
+  const cities = dict.cities as Record<string, string>;
+  const from = cities[trip.fromKey] || trip.fromKey;
+  const to = cities[trip.toKey] || trip.toKey;
+
+  // Full route: from -> waypoints -> to
+  const fullRoute = [
+    trip.fromKey,
+    ...(trip.waypoints || []),
+    trip.toKey,
+  ];
+  const fullRouteNames = fullRoute.map((key) => cities[key] || key);
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${trip.pickupLat},${trip.pickupLng}`;
   const phone = trip.phone.replace(/[^0-9+]/g, "");
@@ -102,8 +115,8 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
         </div>
       </div>
 
-      {/* Badges */}
-      <div className="flex gap-1 mb-2">
+      {/* Badges + Route button */}
+      <div className="flex gap-1 mb-2 flex-wrap">
         <span className="bg-gray-50 text-gray-500 px-1.5 py-px rounded text-[10px]">
           {trip.seats} {dict.trips.seats}
         </span>
@@ -112,7 +125,37 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
             {dict.trips.parcels}
           </span>
         )}
+        {(trip.waypoints?.length ?? 0) > 0 && (
+          <button
+            onClick={() => setRouteOpen(!routeOpen)}
+            className="bg-blue-50 text-blue-600 px-1.5 py-px rounded text-[10px] font-semibold hover:bg-blue-100 transition-colors flex items-center gap-0.5"
+          >
+            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            {dict.trips.route} ({fullRoute.length})
+          </button>
+        )}
       </div>
+
+      {/* Route details dropdown */}
+      {routeOpen && (
+        <div className="bg-blue-50 rounded-lg p-2 mb-2">
+          <div className="flex flex-col gap-1">
+            {fullRouteNames.map((city, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                <div className={`w-2 h-2 rounded-full shrink-0 ${i === 0 ? "bg-green-500" : i === fullRouteNames.length - 1 ? "bg-red-500" : "bg-blue-400"}`} />
+                <span className="text-[10px] text-gray-700">{city}</span>
+                {i < fullRouteNames.length - 1 && (
+                  <svg className="w-2.5 h-2.5 text-gray-300 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Actions: Pickup + Book with dropdown */}
       <div className="flex gap-1.5">
