@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { i18n, type Locale } from "@/i18n/config";
+import { basePath } from "@/lib/base-path";
 
 const labels: Record<Locale, string> = {
   uk: "UA",
@@ -13,9 +14,10 @@ export default function LanguageSwitcher({ current }: { current: Locale }) {
   const pathname = usePathname();
 
   function getLocalePath(locale: Locale) {
+    // usePathname returns path WITHOUT basePath
     const segments = pathname.split("/");
     segments[1] = locale;
-    return segments.join("/");
+    return `${basePath}${segments.join("/")}`;
   }
 
   return (

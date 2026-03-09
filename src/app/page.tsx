@@ -1,6 +1,7 @@
-import { redirect } from "next/navigation";
 import { i18n } from "@/i18n/config";
+import { basePath } from "@/lib/base-path";
+import { redirect } from "next/navigation";
 
 export default function RootPage() {
-  redirect(`/${i18n.defaultLocale}`);
+  redirect(`${basePath}/${i18n.defaultLocale}/`);
 }

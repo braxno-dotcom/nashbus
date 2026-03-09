@@ -1,4 +1,5 @@
 import type { Locale } from "@/i18n/config";
+import { basePath } from "@/lib/base-path";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 type Dict = Awaited<ReturnType<typeof import("@/i18n/get-dictionary").getDictionary>>;
@@ -11,19 +12,19 @@ export default function Header({ lang, dict }: { lang: Locale; dict: Dict }) {
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 17a2 2 0 002 2h4a2 2 0 002-2M8 17H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3M8 17v2m8-2v2M3 11h18M7 7h.01M17 7h.01" />
           </svg>
-          <a href={`/${lang}`} className="text-white font-bold text-sm hover:text-blue-100 transition-colors">
+          <a href={`${basePath}/${lang}/`} className="text-white font-bold text-sm hover:text-blue-100 transition-colors">
             NashBus
           </a>
         </div>
         <div className="flex items-center gap-1">
           <a
-            href={`/${lang}/driver`}
+            href={`${basePath}/${lang}/driver/`}
             className="bg-yellow-400 text-gray-900 px-2 py-1 rounded text-[10px] font-bold hover:bg-yellow-300 transition-colors"
           >
             {dict.nav.driverPanel}
           </a>
           <a
-            href={`/${lang}/complaints`}
+            href={`${basePath}/${lang}/complaints/`}
             className="bg-white/15 text-white px-2 py-1 rounded text-[10px] font-medium hover:bg-white/25 transition-colors"
           >
             {dict.nav.complaints}

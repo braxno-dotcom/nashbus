@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "NashBus — Перевезення Україна-Європа-Молдова",
   description:
     "Агрегатор пасажирських перевезень та посилок між Україною, Європою та Молдовою",
-  manifest: "/manifest.json",
+  manifest: "./manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -35,9 +35,6 @@ export default async function RootLayout({
   const { lang } = await params;
   return (
     <html lang={lang}>
-      <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
-      </head>
       <body className="bg-gray-50 text-gray-900 antialiased">
         {children}
         <RegisterSW />
