@@ -1,8 +1,12 @@
 {
   "nav": {
     "title": "NashBus",
-    "addTrip": "Șofer: Adaugă cursă",
-    "myClients": "Clienții mei"
+    "addTrip": "Adaugă cursă",
+    "myClients": "Clienții mei",
+    "complaints": "Cartea de reclamații și sugestii",
+    "login": "Autentificare",
+    "logout": "Deconectare",
+    "driverPanel": "Panoul șoferului"
   },
   "hero": {
     "title": "NashBus: Transport Ucraina — Europa — Moldova",
@@ -37,7 +41,7 @@
     "button": "Aflați mai multe"
   },
   "driver": {
-    "title": "Șofer: Adaugă cursa ta",
+    "title": "Adaugă cursa ta",
     "subtitle": "Completează formularul și cursa ta va fi văzută de mii de pasageri",
     "from": "De unde",
     "to": "Încotro",
@@ -47,11 +51,11 @@
     "pickupMap": "Punct de colectare (link Google Maps)",
     "phone": "Telefonul dvs. (Viber/WhatsApp)",
     "submit": "Publică cursa",
-    "success": "Cursa a fost adăugată! Vă vom contacta pentru confirmare."
+    "success": "Cursa a fost adăugată!"
   },
   "clients": {
     "title": "Clienții mei",
-    "subtitle": "Baza de clienți pentru procesarea rapidă a coletelor",
+    "subtitle": "Seiful dvs. personal — datele sunt vizibile doar pentru dvs.",
     "name": "Numele clientului",
     "phone": "Telefonul clientului",
     "address": "Adresa de livrare",
@@ -60,16 +64,48 @@
     "noClients": "Nu aveți clienți încă. Adăugați primul!",
     "addressChanged": "Atenție! Acest client și-a schimbat adresa de livrare",
     "previousAddress": "Adresa anterioară",
-    "sendReceipt": "Trimite chitanța destinatarului",
+    "addressHistory": "Istoric adrese",
+    "useThisAddress": "Folosește această adresă",
+    "addNewAddress": "Adaugă adresă nouă",
+    "sendReceipt": "Trimite chitanța",
     "receiptMessage": "NashBus — Chitanță\nCursa: {from} → {to}\nData: {date}\nAutobuz: {bus}\nClient: {client}\nAdresa de livrare: {address}\nStatus: Confirmat ✓",
     "busNumber": "Numărul autobuzului",
     "routeFrom": "Cursa de la",
     "routeTo": "Cursa la",
     "routeDate": "Data cursei",
     "delete": "Șterge",
-    "edit": "Editează",
     "generateReceipt": "Generează chitanță",
     "via": "Trimite prin"
+  },
+  "auth": {
+    "title": "Autentificare șofer",
+    "subtitle": "Conectați-vă pentru a accesa panoul șoferului",
+    "name": "Numele dvs.",
+    "phone": "Număr de telefon",
+    "password": "Parola",
+    "login": "Autentificare",
+    "register": "Înregistrare",
+    "noAccount": "Nu aveți cont?",
+    "hasAccount": "Aveți deja cont?",
+    "registered": "Înregistrare reușită! Acum conectați-vă.",
+    "wrongPassword": "Parolă greșită",
+    "notFound": "Contul nu a fost găsit",
+    "welcome": "Bun venit"
+  },
+  "complaints": {
+    "title": "Cartea de reclamații și sugestii",
+    "subtitle": "Lăsați o recenzie, reclamație sau idee. Citim fiecare mesaj.",
+    "name": "Numele dvs.",
+    "email": "Email (opțional)",
+    "type": "Tipul mesajului",
+    "typeReview": "Recenzie",
+    "typeComplaint": "Reclamație",
+    "typeIdea": "Idee / Sugestie",
+    "route": "Cursa (dacă este cazul)",
+    "message": "Mesajul dvs.",
+    "submit": "Trimite",
+    "success": "Mulțumim! Mesajul dvs. a fost salvat. Îl vom examina cu siguranță.",
+    "history": "Ultimele mesaje"
   },
   "cities": {
     "paris": "Paris",

@@ -15,18 +15,18 @@ export default function Header({ lang, dict }: { lang: Locale; dict: Dict }) {
             NashBus
           </a>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <a
             href={`/${lang}/driver`}
-            className="bg-yellow-400 text-gray-900 px-2 py-1 rounded text-[11px] font-bold hover:bg-yellow-300 transition-colors"
+            className="bg-yellow-400 text-gray-900 px-2 py-1 rounded text-[10px] font-bold hover:bg-yellow-300 transition-colors"
           >
-            {dict.nav.addTrip}
+            {dict.nav.driverPanel}
           </a>
           <a
-            href={`/${lang}/driver`}
-            className="bg-white/15 text-white px-2 py-1 rounded text-[11px] font-medium hover:bg-white/25 transition-colors"
+            href={`/${lang}/complaints`}
+            className="bg-white/15 text-white px-2 py-1 rounded text-[10px] font-medium hover:bg-white/25 transition-colors"
           >
-            {dict.nav.myClients}
+            {dict.nav.complaints}
           </a>
           <LanguageSwitcher current={lang} />
         </div>

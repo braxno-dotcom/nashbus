@@ -3,34 +3,37 @@ export interface ClientRecord {
   name: string;
   phone: string;
   address: string;
-  previousAddress: string | null;
+  addressHistory: string[];
   createdAt: string;
   updatedAt: string;
 }
 
-const STORAGE_KEY = "nashbus_clients";
+function storageKey(driverId: string) {
+  return `nashbus_clients_${driverId}`;
+}
 
-export function getClients(): ClientRecord[] {
+export function getClients(driverId: string): ClientRecord[] {
   if (typeof window === "undefined") return [];
-  const data = localStorage.getItem(STORAGE_KEY);
+  const data = localStorage.getItem(storageKey(driverId));
   return data ? JSON.parse(data) : [];
 }
 
-export function saveClient(name: string, phone: string, address: string): ClientRecord {
-  const clients = getClients();
+export function saveClient(driverId: string, name: string, phone: string, address: string): { client: ClientRecord; isNew: boolean; addressChanged: boolean } {
+  const clients = getClients(driverId);
   const existing = clients.find(
     (c) => c.name.toLowerCase() === name.toLowerCase()
   );
 
   if (existing) {
-    const previousAddress =
-      existing.address !== address ? existing.address : existing.previousAddress;
+    const addressChanged = existing.address !== address;
+    if (addressChanged && !existing.addressHistory.includes(existing.address)) {
+      existing.addressHistory.push(existing.address);
+    }
     existing.phone = phone;
-    existing.previousAddress = previousAddress;
     existing.address = address;
     existing.updatedAt = new Date().toISOString();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
-    return existing;
+    localStorage.setItem(storageKey(driverId), JSON.stringify(clients));
+    return { client: existing, isNew: false, addressChanged };
   }
 
   const newClient: ClientRecord = {
@@ -38,23 +41,23 @@ export function saveClient(name: string, phone: string, address: string): Client
     name,
     phone,
     address,
-    previousAddress: null,
+    addressHistory: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
   clients.push(newClient);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
-  return newClient;
+  localStorage.setItem(storageKey(driverId), JSON.stringify(clients));
+  return { client: newClient, isNew: true, addressChanged: false };
 }
 
-export function deleteClient(id: string): void {
-  const clients = getClients().filter((c) => c.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
+export function deleteClient(driverId: string, id: string): void {
+  const clients = getClients(driverId).filter((c) => c.id !== id);
+  localStorage.setItem(storageKey(driverId), JSON.stringify(clients));
 }
 
-export function findClientByName(query: string): ClientRecord[] {
+export function findClientByName(driverId: string, query: string): ClientRecord[] {
   if (!query || query.length < 2) return [];
-  const clients = getClients();
+  const clients = getClients(driverId);
   const q = query.toLowerCase();
   return clients.filter((c) => c.name.toLowerCase().includes(q));
 }

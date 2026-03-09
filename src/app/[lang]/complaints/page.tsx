@@ -1,9 +1,9 @@
 import { getDictionary } from "@/i18n/get-dictionary";
 import type { Locale } from "@/i18n/config";
 import Header from "@/components/Header";
-import DriverPageClient from "@/components/DriverPageClient";
+import ComplaintsForm from "@/components/ComplaintsForm";
 
-export default async function DriverPage({
+export default async function ComplaintsPage({
   params,
 }: {
   params: Promise<{ lang: string }>;
@@ -16,7 +16,7 @@ export default async function DriverPage({
       <Header lang={lang as Locale} dict={dict} />
       <div className="pt-12 px-4 pb-8">
         <div className="max-w-2xl mx-auto">
-          <DriverPageClient dict={dict} />
+          <ComplaintsForm dict={dict} />
         </div>
       </div>
     </div>
