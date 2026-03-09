@@ -2,7 +2,6 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import type { Locale } from "@/i18n/config";
 import Header from "@/components/Header";
 import TripSearch from "@/components/TripSearch";
-import AddTripForm from "@/components/AddTripForm";
 import AdSlot from "@/components/AdSlot";
 
 const SAMPLE_TRIPS = [
@@ -115,13 +114,6 @@ export default async function Home({
       <section className="px-4 pb-4">
         <div className="max-w-5xl mx-auto">
           <AdSlot dict={dict} />
-        </div>
-      </section>
-
-      {/* Driver */}
-      <section id="driver" className="px-4 pb-6">
-        <div className="max-w-5xl mx-auto">
-          <AddTripForm dict={dict} />
         </div>
       </section>
     </div>
