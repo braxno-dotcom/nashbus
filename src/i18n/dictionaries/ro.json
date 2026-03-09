@@ -20,12 +20,20 @@
   },
   "trips": {
     "title": "Curse apropiate",
-    "pickupPoint": "Pe hartă",
+    "pickupPoint": "Punct de colectare",
     "seats": "locuri",
     "parcels": "Colete",
     "book": "Rezervă",
     "duration": "Durata",
-    "bookMessage": "Bună! Doresc să rezerv cursa"
+    "bookMessage": "Bună ziua! Sunt interesat de cursa {from} — {to} din {date}. Mai sunt locuri libere?",
+    "call": "Sună",
+    "saved": "Salvat",
+    "removed": "Eliminat din salvate"
+  },
+  "ad": {
+    "title": "Asigurare de călătorie",
+    "text": "Obțineți asigurare online în 2 minute. Acoperire în toată Europa.",
+    "button": "Aflați mai multe"
   },
   "driver": {
     "title": "Șofer: Adaugă cursa ta",
@@ -39,6 +47,14 @@
     "phone": "Telefonul dvs. (Viber/WhatsApp)",
     "submit": "Publică cursa",
     "success": "Cursa a fost adăugată! Vă vom contacta pentru confirmare."
+  },
+  "cities": {
+    "paris": "Paris",
+    "chernivtsi": "Cernăuți",
+    "madrid": "Madrid",
+    "kyiv": "Kiev",
+    "chisinau": "Chișinău",
+    "odesa": "Odesa"
   },
   "languages": {
     "uk": "Українська",
