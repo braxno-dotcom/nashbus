@@ -51,11 +51,10 @@
     .geo-status { font-size: 9px; color: #9ca3af; margin-top: 2px; }
     .geo-status.ok { color: #16a34a; }
     .geo-status.err { color: #dc2626; }
-    /* Arrival +1 day */
+    /* Arrival +N days */
     .arrival-row { display: flex; align-items: center; gap: 6px; }
     .arrival-row input[type=time] { flex: 1; }
-    .plus1-label { font-size: 10px; color: #64748b; white-space: nowrap; display: flex; align-items: center; gap: 3px; }
-    .plus1-label input { width: auto; margin: 0; }
+    .arrival-row select { width: auto; min-width: 70px; font-size: 11px; padding: 6px 4px; }
     @media (max-width: 768px) {
       .trip-table, .trip-table thead, .trip-table tbody, .trip-table th, .trip-table td, .trip-table tr { display: block; }
       .trip-table thead { display: none; }
@@ -94,8 +93,9 @@
       <p class="subtitle">Заполните поля и нажмите «Сохранить»</p>
       <form id="admin-trip-form" onsubmit="saveTrip(event)">
         <input type="hidden" id="edit-id" value="">
-        <div class="grid-2">
+        <div class="grid-3">
           <div class="form-section"><label>Перевозчик</label><input type="text" id="f-carrier" placeholder="EuroTrans" required></div>
+          <div class="form-section"><label>ID компании</label><input type="text" id="f-carrier-id" placeholder="eurotrans" required></div>
           <div class="form-section"><label>Телефон</label><input type="tel" id="f-phone" placeholder="+380..." required></div>
         </div>
         <div class="grid-2">
@@ -114,7 +114,12 @@
             <label>Прибытие</label>
             <div class="arrival-row">
               <input type="time" id="f-arrival" required>
-              <label class="plus1-label"><input type="checkbox" id="f-plus1">+1 день</label>
+              <select id="f-plus-days">
+                <option value="0">+0</option>
+                <option value="1">+1</option>
+                <option value="2">+2</option>
+                <option value="3">+3</option>
+              </select>
             </div>
           </div>
         </div>
@@ -173,13 +178,28 @@
 </div>
 
 <script>
+// ==================== Auth gate ====================
+(function() {
+  var AUTH_KEY = "nashbus_admin_auth";
+  var PASS = "access2026";
+  var saved = sessionStorage.getItem(AUTH_KEY);
+  if (saved === PASS) return;
+  var input = prompt("Введите пароль для доступа к админ-панели:");
+  if (input === PASS) {
+    sessionStorage.setItem(AUTH_KEY, PASS);
+  } else {
+    alert("Неверный пароль");
+    window.location.href = "index.html";
+  }
+})();
+
 // ==================== Shared keys ====================
 var TRIPS_KEY = "nashbus_trips";
 var DEFAULT_TRIPS = [
-  { id: "1", carrier: "EuroTrans", fromKey: "paris", toKey: "kyiv", date: "15.03.2026", departure: "06:00", arrival: "14:00+1", duration: "32h", price: "€95", seats: 14, parcels: true, pickupLat: 48.8566, pickupLng: 2.3522, phone: "+380501234567", waypoints: ["strasbourg","nuremberg","prague","krakow","lviv","ternopil","zhytomyr"] },
-  { id: "2", carrier: "BerlinLvivBus", fromKey: "berlin", toKey: "lviv", date: "16.03.2026", departure: "18:00", arrival: "16:00+1", duration: "22h", price: "€75", seats: 10, parcels: true, pickupLat: 52.52, pickupLng: 13.405, phone: "+380671234567", waypoints: ["wroclaw","katowice","krakow","rzeszow","ivanofrankivsk"] },
-  { id: "3", carrier: "WarszawaOdesa", fromKey: "warsaw", toKey: "odesa", date: "17.03.2026", departure: "07:00", arrival: "08:00+1", duration: "25h", price: "€80", seats: 8, parcels: true, pickupLat: 52.2297, pickupLng: 21.0122, phone: "+380931234567", waypoints: ["lublin","lviv","ternopil","vinnytsya","kyiv","mykolaiv"] },
-  { id: "4", carrier: "MoldovaExpress", fromKey: "chisinau", toKey: "chernivtsi", date: "18.03.2026", departure: "06:30", arrival: "14:00", duration: "7.5h", price: "€30", seats: 6, parcels: false, pickupLat: 47.0105, pickupLng: 28.8638, phone: "+373691234567", waypoints: ["tiraspol","odesa","iasi","suceava","siret"] }
+  { id: "1", carrierId: "eurotrans", carrier: "EuroTrans", fromKey: "paris", toKey: "kyiv", date: "15.03.2026", departure: "06:00", arrival: "14:00+1", duration: "32h", price: "€95", seats: 14, parcels: true, pickupLat: 48.8566, pickupLng: 2.3522, phone: "+380501234567", waypoints: ["strasbourg","nuremberg","prague","krakow","lviv","ternopil","zhytomyr"] },
+  { id: "2", carrierId: "berlinlvivbus", carrier: "BerlinLvivBus", fromKey: "berlin", toKey: "lviv", date: "16.03.2026", departure: "18:00", arrival: "16:00+1", duration: "22h", price: "€75", seats: 10, parcels: true, pickupLat: 52.52, pickupLng: 13.405, phone: "+380671234567", waypoints: ["wroclaw","katowice","krakow","rzeszow","ivanofrankivsk"] },
+  { id: "3", carrierId: "warszawaodesa", carrier: "WarszawaOdesa", fromKey: "warsaw", toKey: "odesa", date: "17.03.2026", departure: "07:00", arrival: "08:00+1", duration: "25h", price: "€80", seats: 8, parcels: true, pickupLat: 52.2297, pickupLng: 21.0122, phone: "+380931234567", waypoints: ["lublin","lviv","ternopil","vinnytsya","kyiv","mykolaiv"] },
+  { id: "4", carrierId: "moldovaexpress", carrier: "MoldovaExpress", fromKey: "chisinau", toKey: "chernivtsi", date: "18.03.2026", departure: "06:30", arrival: "14:00", duration: "7.5h", price: "€30", seats: 6, parcels: false, pickupLat: 47.0105, pickupLng: 28.8638, phone: "+373691234567", waypoints: ["tiraspol","odesa","iasi","suceava","siret"] }
 ];
 
 function loadTrips() {
@@ -196,7 +216,7 @@ function renderTable() {
   tbody.innerHTML = trips.map(function(t) {
     var wps = (t.waypoints || []).map(function(w) { return '<span class="wp-tag">' + w + '</span>'; }).join("");
     return '<tr>' +
-      '<td data-label="Перевозчик">' + t.carrier + '</td>' +
+      '<td data-label="Перевозчик">' + t.carrier + '<br><span style="color:#9ca3af;font-size:9px">' + (t.carrierId || '—') + '</span></td>' +
       '<td data-label="Маршрут"><strong>' + t.fromKey + '</strong> → <strong>' + t.toKey + '</strong></td>' +
       '<td data-label="Остановки"><div class="wp-tags">' + (wps || '—') + '</div></td>' +
       '<td data-label="Дата">' + t.date + '<br><span style="color:#9ca3af;font-size:9px">' + t.departure + ' → ' + t.arrival + '</span></td>' +
@@ -231,11 +251,13 @@ function toDmyDate(iso) {
   var p = iso.split("-");
   return p.length === 3 ? p[2] + "." + p[1] + "." + p[0] : "";
 }
-// "14:00+1" → { time: "14:00", plus1: true }
+// "14:00+2" → { time: "14:00", days: 2 }
 function parseArrival(val) {
-  if (!val) return { time: "", plus1: false };
-  var plus1 = val.indexOf("+1") !== -1;
-  return { time: val.replace("+1", ""), plus1: plus1 };
+  if (!val) return { time: "", days: 0 };
+  var m = val.match(/\+(\d+)$/);
+  var days = m ? parseInt(m[1]) : 0;
+  var time = m ? val.replace("+" + m[1], "") : val;
+  return { time: time, days: days };
 }
 
 // ==================== Geocoding (Nominatim) ====================
@@ -349,15 +371,16 @@ function saveTrip(e) {
   var wpRaw = document.getElementById("f-waypoints").value;
   var waypoints = wpRaw ? wpRaw.split(",").map(function(s) { return s.trim(); }).filter(Boolean) : [];
   var arrTime = document.getElementById("f-arrival").value;
-  var plus1 = document.getElementById("f-plus1").checked;
+  var plusDays = parseInt(document.getElementById("f-plus-days").value) || 0;
   var trip = {
     id: editId || Date.now().toString(36),
+    carrierId: document.getElementById("f-carrier-id").value.trim().toLowerCase(),
     carrier: document.getElementById("f-carrier").value,
     fromKey: document.getElementById("f-from").value.trim(),
     toKey: document.getElementById("f-to").value.trim(),
     date: toDmyDate(document.getElementById("f-date").value),
     departure: document.getElementById("f-departure").value,
-    arrival: arrTime + (plus1 ? "+1" : ""),
+    arrival: arrTime + (plusDays > 0 ? "+" + plusDays : ""),
     duration: document.getElementById("f-duration").value,
     price: document.getElementById("f-price").value,
     seats: parseInt(document.getElementById("f-seats").value) || 1,
@@ -383,6 +406,7 @@ function editTrip(id) {
   if (!t) return;
   var arr = parseArrival(t.arrival);
   document.getElementById("edit-id").value = t.id;
+  document.getElementById("f-carrier-id").value = t.carrierId || "";
   document.getElementById("f-carrier").value = t.carrier;
   document.getElementById("f-phone").value = t.phone;
   document.getElementById("f-from").value = t.fromKey;
@@ -391,7 +415,7 @@ function editTrip(id) {
   document.getElementById("f-date").value = toIsoDate(t.date);
   document.getElementById("f-departure").value = t.departure;
   document.getElementById("f-arrival").value = arr.time;
-  document.getElementById("f-plus1").checked = arr.plus1;
+  document.getElementById("f-plus-days").value = arr.days;
   document.getElementById("f-duration").value = t.duration;
   document.getElementById("f-price").value = t.price;
   document.getElementById("f-seats").value = t.seats;
