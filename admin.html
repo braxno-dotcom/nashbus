@@ -74,44 +74,49 @@
     </a>
     <div class="header-actions">
       <span style="color:#facc15;font-size:10px;font-weight:700;padding:4px 8px;background:rgba(250,204,21,.15);border-radius:4px">ADMIN</span>
-      <a href="index.html" style="color:#fff;font-size:10px;padding:4px 8px">← На сайт</a>
+      <a href="index.html" style="color:#fff;font-size:10px;padding:4px 8px" data-i18n="backToSite">← На сайт</a>
+      <div class="lang-switcher">
+        <button onclick="setLang('uk')" data-lang="uk">UA</button>
+        <button onclick="setLang('ru')" data-lang="ru">RU</button>
+        <button onclick="setLang('ro')" data-lang="ro">RO</button>
+      </div>
     </div>
   </div>
 </header>
 
 <div class="admin-body">
   <div class="container">
-    <h1 class="admin-title">Управление рейсами</h1>
-    <p class="admin-sub">Добавляйте, редактируйте и удаляйте рейсы. Изменения мгновенно появятся на главной странице.</p>
+    <h1 class="admin-title" data-i18n="title">Управление рейсами</h1>
+    <p class="admin-sub" data-i18n="subtitle">Добавляйте, редактируйте и удаляйте рейсы. Изменения мгновенно появятся на главной странице.</p>
 
     <!-- Stats -->
     <div class="stat-row" id="stats"></div>
 
     <!-- Add/Edit Form -->
     <div class="card" id="form-card">
-      <h3 id="form-title">Добавить рейс</h3>
-      <p class="subtitle">Заполните поля и нажмите «Сохранить»</p>
+      <h3 id="form-title" data-i18n="addTrip">Добавить рейс</h3>
+      <p class="subtitle" data-i18n="formHint">Заполните поля и нажмите «Сохранить»</p>
       <form id="admin-trip-form" onsubmit="saveTrip(event)">
         <input type="hidden" id="edit-id" value="">
         <div class="grid-3">
-          <div class="form-section"><label>Перевозчик</label><input type="text" id="f-carrier" placeholder="EuroTrans" required></div>
-          <div class="form-section"><label>ID компании</label><input type="text" id="f-carrier-id" placeholder="eurotrans" required></div>
-          <div class="form-section"><label>Телефон</label><input type="tel" id="f-phone" placeholder="+380..." required></div>
+          <div class="form-section"><label data-i18n="f.carrier">Перевозчик</label><input type="text" id="f-carrier" placeholder="EuroTrans" required></div>
+          <div class="form-section"><label data-i18n="f.carrierId">ID компании</label><input type="text" id="f-carrier-id" placeholder="eurotrans" required></div>
+          <div class="form-section"><label data-i18n="f.phone">Телефон</label><input type="tel" id="f-phone" placeholder="+380..." required></div>
         </div>
         <div class="grid-2">
-          <div class="form-section ac-wrap"><label>Откуда</label><input type="text" id="f-from" placeholder="paris" required autocomplete="off"><div class="ac-list" id="ac-from"></div></div>
-          <div class="form-section ac-wrap"><label>Куда</label><input type="text" id="f-to" placeholder="kyiv" required autocomplete="off"><div class="ac-list" id="ac-to"></div></div>
+          <div class="form-section ac-wrap"><label data-i18n="f.from">Откуда</label><input type="text" id="f-from" placeholder="paris" required autocomplete="off"><div class="ac-list" id="ac-from"></div></div>
+          <div class="form-section ac-wrap"><label data-i18n="f.to">Куда</label><input type="text" id="f-to" placeholder="kyiv" required autocomplete="off"><div class="ac-list" id="ac-to"></div></div>
         </div>
         <div class="form-section ac-wrap">
-          <label>Промежуточные остановки (через запятую)</label>
+          <label data-i18n="f.waypoints">Промежуточные остановки (через запятую)</label>
           <input type="text" id="f-waypoints" placeholder="strasbourg, nuremberg, prague, krakow, lviv" autocomplete="off">
           <div class="ac-list" id="ac-wp"></div>
         </div>
         <div class="grid-3">
-          <div class="form-section"><label>Дата</label><input type="date" id="f-date" required></div>
-          <div class="form-section"><label>Отправление</label><input type="time" id="f-departure" required></div>
+          <div class="form-section"><label data-i18n="f.date">Дата</label><input type="date" id="f-date" required></div>
+          <div class="form-section"><label data-i18n="f.departure">Отправление</label><input type="time" id="f-departure" required></div>
           <div class="form-section">
-            <label>Прибытие</label>
+            <label data-i18n="f.arrival">Прибытие</label>
             <div class="arrival-row">
               <input type="time" id="f-arrival" required>
               <select id="f-plus-days">
@@ -124,29 +129,29 @@
           </div>
         </div>
         <div class="grid-3">
-          <div class="form-section"><label>В пути</label><input type="text" id="f-duration" placeholder="32h" required></div>
-          <div class="form-section"><label>Цена</label><input type="text" id="f-price" placeholder="€95" required></div>
-          <div class="form-section"><label>Мест</label><input type="number" id="f-seats" placeholder="14" min="1" required></div>
+          <div class="form-section"><label data-i18n="f.duration">В пути</label><input type="text" id="f-duration" placeholder="32h" required></div>
+          <div class="form-section"><label data-i18n="f.price">Цена</label><input type="text" id="f-price" placeholder="€95" required></div>
+          <div class="form-section"><label data-i18n="f.seats">Мест</label><input type="number" id="f-seats" placeholder="14" min="1" required></div>
         </div>
         <div class="form-section">
-          <label>Точка сбора (адрес)</label>
+          <label data-i18n="f.address">Точка сбора (адрес)</label>
           <div class="addr-row">
-            <input type="text" id="f-address" placeholder="Варшава, центральный вокзал">
-            <button type="button" class="btn-geo" onclick="geocodeAddress()">📍 Найти</button>
+            <input type="text" id="f-address" data-i18n-placeholder="f.addressHint" placeholder="Варшава, центральный вокзал">
+            <button type="button" class="btn-geo" onclick="geocodeAddress()" data-i18n="f.find">📍 Найти</button>
           </div>
           <div class="geo-status" id="geo-status"></div>
         </div>
         <div class="grid-2">
-          <div class="form-section"><label>Широта</label><input type="text" id="f-lat" placeholder="48.8566" readonly style="background:#f9fafb"></div>
-          <div class="form-section"><label>Долгота</label><input type="text" id="f-lng" placeholder="2.3522" readonly style="background:#f9fafb"></div>
+          <div class="form-section"><label data-i18n="f.lat">Широта</label><input type="text" id="f-lat" placeholder="48.8566" readonly style="background:#f9fafb"></div>
+          <div class="form-section"><label data-i18n="f.lng">Долгота</label><input type="text" id="f-lng" placeholder="2.3522" readonly style="background:#f9fafb"></div>
         </div>
         <div class="checkbox-row">
           <input type="checkbox" id="f-parcels">
-          <label for="f-parcels">Принимает посылки</label>
+          <label for="f-parcels" data-i18n="f.parcels">Принимает посылки</label>
         </div>
         <div style="display:flex;gap:8px">
-          <button type="submit" class="btn-primary">Сохранить</button>
-          <button type="button" onclick="cancelEdit()" class="btn-reset-demo" style="flex:none;padding:8px 16px">Отмена</button>
+          <button type="submit" class="btn-primary" data-i18n="f.save">Сохранить</button>
+          <button type="button" onclick="cancelEdit()" class="btn-reset-demo" style="flex:none;padding:8px 16px" data-i18n="f.cancel">Отмена</button>
         </div>
       </form>
     </div>
@@ -154,20 +159,20 @@
     <!-- Trips table -->
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <h3>Все рейсы</h3>
-        <button onclick="resetToDemo()" class="btn-reset-demo">Сбросить на демо-данные</button>
+        <h3 data-i18n="allTrips">Все рейсы</h3>
+        <button onclick="resetToDemo()" class="btn-reset-demo" data-i18n="resetDemo">Сбросить на демо-данные</button>
       </div>
       <div style="overflow-x:auto">
         <table class="trip-table">
           <thead>
             <tr>
-              <th>Перевозчик</th>
-              <th>Маршрут</th>
-              <th>Остановки</th>
-              <th>Дата</th>
-              <th>Цена</th>
-              <th>Мест</th>
-              <th>Действия</th>
+              <th data-i18n="th.carrier">Перевозчик</th>
+              <th data-i18n="th.route">Маршрут</th>
+              <th data-i18n="th.stops">Остановки</th>
+              <th data-i18n="th.date">Дата</th>
+              <th data-i18n="th.price">Цена</th>
+              <th data-i18n="th.seats">Мест</th>
+              <th data-i18n="th.actions">Действия</th>
             </tr>
           </thead>
           <tbody id="trips-tbody"></tbody>
@@ -193,6 +198,97 @@
   }
 })();
 
+// ==================== i18n ====================
+var ADMIN_DICT = {
+  uk: {
+    backToSite: "← На сайт",
+    title: "Управління рейсами",
+    subtitle: "Додавайте, редагуйте та видаляйте рейси. Зміни миттєво з'являться на головній сторінці.",
+    addTrip: "Додати рейс",
+    editTripPrefix: "Редагувати рейс: ",
+    formHint: "Заповніть поля та натисніть «Зберегти»",
+    allTrips: "Всі рейси",
+    resetDemo: "Скинути на демо-дані",
+    confirmDelete: "Видалити цей рейс?",
+    confirmReset: "Скинути всі рейси на демо-дані? Поточні будуть втрачені.",
+    stat: { trips: "Рейсів", seats: "Місць всього", parcels: "З посилками" },
+    f: { carrier: "Перевізник", carrierId: "ID компанії", phone: "Телефон", from: "Звідки", to: "Куди",
+      waypoints: "Проміжні зупинки (через кому)", date: "Дата", departure: "Відправлення", arrival: "Прибуття",
+      duration: "У дорозі", price: "Ціна", seats: "Місць", address: "Точка збору (адреса)",
+      addressHint: "Варшава, центральний вокзал", find: "📍 Знайти",
+      lat: "Широта", lng: "Довгота", parcels: "Приймає посилки", save: "Зберегти", cancel: "Скасувати" },
+    th: { carrier: "Перевізник", route: "Маршрут", stops: "Зупинки", date: "Дата", price: "Ціна", seats: "Місць", actions: "Дії" }
+  },
+  ru: {
+    backToSite: "← На сайт",
+    title: "Управление рейсами",
+    subtitle: "Добавляйте, редактируйте и удаляйте рейсы. Изменения мгновенно появятся на главной странице.",
+    addTrip: "Добавить рейс",
+    editTripPrefix: "Редактировать рейс: ",
+    formHint: "Заполните поля и нажмите «Сохранить»",
+    allTrips: "Все рейсы",
+    resetDemo: "Сбросить на демо-данные",
+    confirmDelete: "Удалить этот рейс?",
+    confirmReset: "Сбросить все рейсы на демо-данные? Текущие будут потеряны.",
+    stat: { trips: "Рейсов", seats: "Мест всего", parcels: "С посылками" },
+    f: { carrier: "Перевозчик", carrierId: "ID компании", phone: "Телефон", from: "Откуда", to: "Куда",
+      waypoints: "Промежуточные остановки (через запятую)", date: "Дата", departure: "Отправление", arrival: "Прибытие",
+      duration: "В пути", price: "Цена", seats: "Мест", address: "Точка сбора (адрес)",
+      addressHint: "Варшава, центральный вокзал", find: "📍 Найти",
+      lat: "Широта", lng: "Долгота", parcels: "Принимает посылки", save: "Сохранить", cancel: "Отмена" },
+    th: { carrier: "Перевозчик", route: "Маршрут", stops: "Остановки", date: "Дата", price: "Цена", seats: "Мест", actions: "Действия" }
+  },
+  ro: {
+    backToSite: "← Pe site",
+    title: "Gestionarea curselor",
+    subtitle: "Adăugați, editați și ștergeți curse. Modificările apar instant pe pagina principală.",
+    addTrip: "Adaugă cursă",
+    editTripPrefix: "Editează cursa: ",
+    formHint: "Completați câmpurile și apăsați «Salvează»",
+    allTrips: "Toate cursele",
+    resetDemo: "Resetează la date demo",
+    confirmDelete: "Ștergeți această cursă?",
+    confirmReset: "Resetați toate cursele la date demo? Cele curente vor fi pierdute.",
+    stat: { trips: "Curse", seats: "Locuri total", parcels: "Cu colete" },
+    f: { carrier: "Transportator", carrierId: "ID companie", phone: "Telefon", from: "De unde", to: "Unde",
+      waypoints: "Opriri intermediare (prin virgulă)", date: "Data", departure: "Plecare", arrival: "Sosire",
+      duration: "Durată", price: "Preț", seats: "Locuri", address: "Punct de colectare (adresă)",
+      addressHint: "Varșovia, gara centrală", find: "📍 Caută",
+      lat: "Latitudine", lng: "Longitudine", parcels: "Acceptă colete", save: "Salvează", cancel: "Anulare" },
+    th: { carrier: "Transportator", route: "Rută", stops: "Opriri", date: "Data", price: "Preț", seats: "Locuri", actions: "Acțiuni" }
+  }
+};
+
+var currentLang = localStorage.getItem("nashbus_lang") || "uk";
+
+function at(key) {
+  var keys = key.split(".");
+  var val = ADMIN_DICT[currentLang];
+  for (var i = 0; i < keys.length; i++) { val = val ? val[keys[i]] : undefined; }
+  return val || key;
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem("nashbus_lang", lang);
+  document.documentElement.lang = lang;
+  applyTranslations();
+  renderTable();
+}
+
+function applyTranslations() {
+  document.querySelectorAll("[data-i18n]").forEach(function(el) {
+    if (el.id === "form-title" && document.getElementById("edit-id").value) return;
+    el.textContent = at(el.getAttribute("data-i18n"));
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(function(el) {
+    el.placeholder = at(el.getAttribute("data-i18n-placeholder"));
+  });
+  document.querySelectorAll(".lang-switcher button").forEach(function(btn) {
+    btn.classList.toggle("active", btn.getAttribute("data-lang") === currentLang);
+  });
+}
+
 // ==================== Shared keys ====================
 var TRIPS_KEY = "nashbus_trips";
 var DEFAULT_TRIPS = [
@@ -216,13 +312,13 @@ function renderTable() {
   tbody.innerHTML = trips.map(function(t) {
     var wps = (t.waypoints || []).map(function(w) { return '<span class="wp-tag">' + w + '</span>'; }).join("");
     return '<tr>' +
-      '<td data-label="Перевозчик">' + t.carrier + '<br><span style="color:#9ca3af;font-size:9px">' + (t.carrierId || '—') + '</span></td>' +
-      '<td data-label="Маршрут"><strong>' + t.fromKey + '</strong> → <strong>' + t.toKey + '</strong></td>' +
-      '<td data-label="Остановки"><div class="wp-tags">' + (wps || '—') + '</div></td>' +
-      '<td data-label="Дата">' + t.date + '<br><span style="color:#9ca3af;font-size:9px">' + t.departure + ' → ' + t.arrival + '</span></td>' +
-      '<td data-label="Цена"><strong>' + t.price + '</strong></td>' +
-      '<td data-label="Мест">' + t.seats + '</td>' +
-      '<td data-label="Действия"><div class="actions-cell"><button class="btn-edit" onclick="editTrip(\'' + t.id + '\')">✎</button><button class="btn-del" onclick="deleteTrip(\'' + t.id + '\')">✕</button></div></td>' +
+      '<td data-label="' + at("th.carrier") + '">' + t.carrier + '<br><span style="color:#9ca3af;font-size:9px">' + (t.carrierId || '—') + '</span></td>' +
+      '<td data-label="' + at("th.route") + '"><strong>' + t.fromKey + '</strong> → <strong>' + t.toKey + '</strong></td>' +
+      '<td data-label="' + at("th.stops") + '"><div class="wp-tags">' + (wps || '—') + '</div></td>' +
+      '<td data-label="' + at("th.date") + '">' + t.date + '<br><span style="color:#9ca3af;font-size:9px">' + t.departure + ' → ' + t.arrival + '</span></td>' +
+      '<td data-label="' + at("th.price") + '"><strong>' + t.price + '</strong></td>' +
+      '<td data-label="' + at("th.seats") + '">' + t.seats + '</td>' +
+      '<td data-label="' + at("th.actions") + '"><div class="actions-cell"><button class="btn-edit" onclick="editTrip(\'' + t.id + '\')">✎</button><button class="btn-del" onclick="deleteTrip(\'' + t.id + '\')">✕</button></div></td>' +
       '</tr>';
   }).join("");
   renderStats();
@@ -233,9 +329,9 @@ function renderStats() {
   var totalSeats = trips.reduce(function(s, t) { return s + t.seats; }, 0);
   var withParcels = trips.filter(function(t) { return t.parcels; }).length;
   document.getElementById("stats").innerHTML =
-    '<div class="stat-card"><div class="stat-num">' + total + '</div><div class="stat-label">Рейсов</div></div>' +
-    '<div class="stat-card"><div class="stat-num">' + totalSeats + '</div><div class="stat-label">Мест всего</div></div>' +
-    '<div class="stat-card"><div class="stat-num">' + withParcels + '</div><div class="stat-label">С посылками</div></div>';
+    '<div class="stat-card"><div class="stat-num">' + total + '</div><div class="stat-label">' + at("stat.trips") + '</div></div>' +
+    '<div class="stat-card"><div class="stat-num">' + totalSeats + '</div><div class="stat-label">' + at("stat.seats") + '</div></div>' +
+    '<div class="stat-card"><div class="stat-num">' + withParcels + '</div><div class="stat-label">' + at("stat.parcels") + '</div></div>';
 }
 
 // ==================== Date helpers ====================
@@ -424,12 +520,12 @@ function editTrip(id) {
   document.getElementById("f-lng").value = t.pickupLng || "";
   document.getElementById("f-address").value = "";
   document.getElementById("geo-status").textContent = "";
-  document.getElementById("form-title").textContent = "Редактировать рейс: " + t.carrier;
+  document.getElementById("form-title").textContent = at("editTripPrefix") + t.carrier;
   document.getElementById("form-card").scrollIntoView({ behavior: "smooth" });
 }
 
 function deleteTrip(id) {
-  if (!confirm("Удалить этот рейс?")) return;
+  if (!confirm(at("confirmDelete"))) return;
   trips = trips.filter(function(t) { return t.id !== id; });
   saveTrips(trips);
   renderTable();
@@ -438,7 +534,7 @@ function deleteTrip(id) {
 function cancelEdit() {
   document.getElementById("edit-id").value = "";
   document.getElementById("admin-trip-form").reset();
-  document.getElementById("form-title").textContent = "Добавить рейс";
+  document.getElementById("form-title").textContent = at("addTrip");
   document.getElementById("f-address").value = "";
   document.getElementById("geo-status").textContent = "";
   document.getElementById("f-lat").value = "";
@@ -446,13 +542,14 @@ function cancelEdit() {
 }
 
 function resetToDemo() {
-  if (!confirm("Сбросить все рейсы на демо-данные? Текущие будут потеряны.")) return;
+  if (!confirm(at("confirmReset"))) return;
   trips = JSON.parse(JSON.stringify(DEFAULT_TRIPS));
   saveTrips(trips);
   renderTable();
 }
 
 // ==================== Init ====================
+applyTranslations();
 renderTable();
 setupAC("f-from", "ac-from", false);
 setupAC("f-to", "ac-to", false);
