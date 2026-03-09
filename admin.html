@@ -36,6 +36,26 @@
     .checkbox-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
     .checkbox-row input[type=checkbox] { width: auto; }
     .checkbox-row label { font-size: 11px; color: #374151; margin: 0; }
+    /* Autocomplete dropdown */
+    .ac-wrap { position: relative; }
+    .ac-list { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; max-height: 150px; overflow-y: auto; z-index: 50; display: none; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+    .ac-list.show { display: block; }
+    .ac-item { padding: 6px 10px; font-size: 11px; cursor: pointer; }
+    .ac-item:hover, .ac-item.active { background: #eff6ff; color: #2563eb; }
+    /* Address geocode */
+    .addr-row { display: flex; gap: 4px; margin-bottom: 4px; }
+    .addr-row input { flex: 1; }
+    .btn-geo { flex-shrink: 0; background: #2563eb; color: #fff; font-size: 10px; font-weight: 600; padding: 6px 10px; border-radius: 6px; border: none; white-space: nowrap; }
+    .btn-geo:hover { background: #1d4ed8; }
+    .btn-geo:disabled { opacity: .5; }
+    .geo-status { font-size: 9px; color: #9ca3af; margin-top: 2px; }
+    .geo-status.ok { color: #16a34a; }
+    .geo-status.err { color: #dc2626; }
+    /* Arrival +1 day */
+    .arrival-row { display: flex; align-items: center; gap: 6px; }
+    .arrival-row input[type=time] { flex: 1; }
+    .plus1-label { font-size: 10px; color: #64748b; white-space: nowrap; display: flex; align-items: center; gap: 3px; }
+    .plus1-label input { width: auto; margin: 0; }
     @media (max-width: 768px) {
       .trip-table, .trip-table thead, .trip-table tbody, .trip-table th, .trip-table td, .trip-table tr { display: block; }
       .trip-table thead { display: none; }
@@ -79,26 +99,41 @@
           <div class="form-section"><label>Телефон</label><input type="tel" id="f-phone" placeholder="+380..." required></div>
         </div>
         <div class="grid-2">
-          <div class="form-section"><label>Откуда (ключ города)</label><input type="text" id="f-from" placeholder="paris" required></div>
-          <div class="form-section"><label>Куда (ключ города)</label><input type="text" id="f-to" placeholder="kyiv" required></div>
+          <div class="form-section ac-wrap"><label>Откуда</label><input type="text" id="f-from" placeholder="paris" required autocomplete="off"><div class="ac-list" id="ac-from"></div></div>
+          <div class="form-section ac-wrap"><label>Куда</label><input type="text" id="f-to" placeholder="kyiv" required autocomplete="off"><div class="ac-list" id="ac-to"></div></div>
         </div>
-        <div class="form-section">
-          <label>Промежуточные остановки (ключи через запятую)</label>
-          <input type="text" id="f-waypoints" placeholder="strasbourg, nuremberg, prague, krakow, lviv">
+        <div class="form-section ac-wrap">
+          <label>Промежуточные остановки (через запятую)</label>
+          <input type="text" id="f-waypoints" placeholder="strasbourg, nuremberg, prague, krakow, lviv" autocomplete="off">
+          <div class="ac-list" id="ac-wp"></div>
         </div>
         <div class="grid-3">
-          <div class="form-section"><label>Дата (ДД.ММ.ГГГГ)</label><input type="text" id="f-date" placeholder="15.03.2026" required></div>
-          <div class="form-section"><label>Отправление</label><input type="text" id="f-departure" placeholder="06:00" required></div>
-          <div class="form-section"><label>Прибытие</label><input type="text" id="f-arrival" placeholder="14:00+1" required></div>
+          <div class="form-section"><label>Дата</label><input type="date" id="f-date" required></div>
+          <div class="form-section"><label>Отправление</label><input type="time" id="f-departure" required></div>
+          <div class="form-section">
+            <label>Прибытие</label>
+            <div class="arrival-row">
+              <input type="time" id="f-arrival" required>
+              <label class="plus1-label"><input type="checkbox" id="f-plus1">+1 день</label>
+            </div>
+          </div>
         </div>
         <div class="grid-3">
           <div class="form-section"><label>В пути</label><input type="text" id="f-duration" placeholder="32h" required></div>
           <div class="form-section"><label>Цена</label><input type="text" id="f-price" placeholder="€95" required></div>
           <div class="form-section"><label>Мест</label><input type="number" id="f-seats" placeholder="14" min="1" required></div>
         </div>
+        <div class="form-section">
+          <label>Точка сбора (адрес)</label>
+          <div class="addr-row">
+            <input type="text" id="f-address" placeholder="Варшава, центральный вокзал">
+            <button type="button" class="btn-geo" onclick="geocodeAddress()">📍 Найти</button>
+          </div>
+          <div class="geo-status" id="geo-status"></div>
+        </div>
         <div class="grid-2">
-          <div class="form-section"><label>Широта (pickup)</label><input type="text" id="f-lat" placeholder="48.8566"></div>
-          <div class="form-section"><label>Долгота (pickup)</label><input type="text" id="f-lng" placeholder="2.3522"></div>
+          <div class="form-section"><label>Широта</label><input type="text" id="f-lat" placeholder="48.8566" readonly style="background:#f9fafb"></div>
+          <div class="form-section"><label>Долгота</label><input type="text" id="f-lng" placeholder="2.3522" readonly style="background:#f9fafb"></div>
         </div>
         <div class="checkbox-row">
           <input type="checkbox" id="f-parcels">
@@ -183,20 +218,146 @@ function renderStats() {
     '<div class="stat-card"><div class="stat-num">' + withParcels + '</div><div class="stat-label">С посылками</div></div>';
 }
 
+// ==================== Date helpers ====================
+// DD.MM.YYYY → YYYY-MM-DD
+function toIsoDate(dmy) {
+  if (!dmy) return "";
+  var p = dmy.split(".");
+  return p.length === 3 ? p[2] + "-" + p[1] + "-" + p[0] : "";
+}
+// YYYY-MM-DD → DD.MM.YYYY
+function toDmyDate(iso) {
+  if (!iso) return "";
+  var p = iso.split("-");
+  return p.length === 3 ? p[2] + "." + p[1] + "." + p[0] : "";
+}
+// "14:00+1" → { time: "14:00", plus1: true }
+function parseArrival(val) {
+  if (!val) return { time: "", plus1: false };
+  var plus1 = val.indexOf("+1") !== -1;
+  return { time: val.replace("+1", ""), plus1: plus1 };
+}
+
+// ==================== Geocoding (Nominatim) ====================
+function geocodeAddress() {
+  var addr = document.getElementById("f-address").value.trim();
+  if (!addr) return;
+  var btn = document.querySelector(".btn-geo");
+  var status = document.getElementById("geo-status");
+  btn.disabled = true;
+  status.className = "geo-status";
+  status.textContent = "Ищем...";
+  fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + encodeURIComponent(addr))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      btn.disabled = false;
+      if (data && data.length > 0) {
+        document.getElementById("f-lat").value = parseFloat(data[0].lat).toFixed(4);
+        document.getElementById("f-lng").value = parseFloat(data[0].lon).toFixed(4);
+        status.className = "geo-status ok";
+        status.textContent = "✓ " + data[0].display_name.substring(0, 60);
+      } else {
+        status.className = "geo-status err";
+        status.textContent = "Адрес не найден. Попробуйте другой запрос.";
+      }
+    })
+    .catch(function() {
+      btn.disabled = false;
+      status.className = "geo-status err";
+      status.textContent = "Ошибка сети. Попробуйте ещё раз.";
+    });
+}
+
+// ==================== Autocomplete ====================
+function getAllCities() {
+  var set = {};
+  trips.forEach(function(t) {
+    set[t.fromKey] = 1;
+    set[t.toKey] = 1;
+    (t.waypoints || []).forEach(function(w) { set[w] = 1; });
+  });
+  DEFAULT_TRIPS.forEach(function(t) {
+    set[t.fromKey] = 1;
+    set[t.toKey] = 1;
+    (t.waypoints || []).forEach(function(w) { set[w] = 1; });
+  });
+  return Object.keys(set).sort();
+}
+
+function setupAC(inputId, listId, isMulti) {
+  var input = document.getElementById(inputId);
+  var list = document.getElementById(listId);
+  var activeIdx = -1;
+
+  function getQuery() {
+    if (!isMulti) return input.value.trim().toLowerCase();
+    var parts = input.value.split(",");
+    return parts[parts.length - 1].trim().toLowerCase();
+  }
+
+  function showSuggestions() {
+    var q = getQuery();
+    if (q.length < 1) { list.classList.remove("show"); return; }
+    var cities = getAllCities().filter(function(c) { return c.toLowerCase().indexOf(q) !== -1; });
+    if (cities.length === 0) { list.classList.remove("show"); return; }
+    activeIdx = -1;
+    list.innerHTML = cities.slice(0, 8).map(function(c, i) {
+      return '<div class="ac-item" data-val="' + c + '">' + c + '</div>';
+    }).join("");
+    list.classList.add("show");
+  }
+
+  function pickValue(val) {
+    if (isMulti) {
+      var parts = input.value.split(",").map(function(s) { return s.trim(); });
+      parts[parts.length - 1] = val;
+      input.value = parts.join(", ") + ", ";
+    } else {
+      input.value = val;
+    }
+    list.classList.remove("show");
+    input.focus();
+  }
+
+  input.addEventListener("input", showSuggestions);
+  input.addEventListener("focus", showSuggestions);
+
+  input.addEventListener("keydown", function(e) {
+    var items = list.querySelectorAll(".ac-item");
+    if (!list.classList.contains("show") || items.length === 0) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); activeIdx = Math.min(activeIdx + 1, items.length - 1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); }
+    else if (e.key === "Enter" && activeIdx >= 0) { e.preventDefault(); pickValue(items[activeIdx].getAttribute("data-val")); return; }
+    else if (e.key === "Escape") { list.classList.remove("show"); return; }
+    items.forEach(function(it, i) { it.classList.toggle("active", i === activeIdx); });
+  });
+
+  list.addEventListener("mousedown", function(e) {
+    var item = e.target.closest(".ac-item");
+    if (item) { e.preventDefault(); pickValue(item.getAttribute("data-val")); }
+  });
+
+  document.addEventListener("click", function(e) {
+    if (!input.contains(e.target) && !list.contains(e.target)) list.classList.remove("show");
+  });
+}
+
 // ==================== CRUD ====================
 function saveTrip(e) {
   e.preventDefault();
   var editId = document.getElementById("edit-id").value;
   var wpRaw = document.getElementById("f-waypoints").value;
   var waypoints = wpRaw ? wpRaw.split(",").map(function(s) { return s.trim(); }).filter(Boolean) : [];
+  var arrTime = document.getElementById("f-arrival").value;
+  var plus1 = document.getElementById("f-plus1").checked;
   var trip = {
     id: editId || Date.now().toString(36),
     carrier: document.getElementById("f-carrier").value,
     fromKey: document.getElementById("f-from").value.trim(),
     toKey: document.getElementById("f-to").value.trim(),
-    date: document.getElementById("f-date").value,
+    date: toDmyDate(document.getElementById("f-date").value),
     departure: document.getElementById("f-departure").value,
-    arrival: document.getElementById("f-arrival").value,
+    arrival: arrTime + (plus1 ? "+1" : ""),
     duration: document.getElementById("f-duration").value,
     price: document.getElementById("f-price").value,
     seats: parseInt(document.getElementById("f-seats").value) || 1,
@@ -220,21 +381,25 @@ function saveTrip(e) {
 function editTrip(id) {
   var t = trips.find(function(x) { return x.id === id; });
   if (!t) return;
+  var arr = parseArrival(t.arrival);
   document.getElementById("edit-id").value = t.id;
   document.getElementById("f-carrier").value = t.carrier;
   document.getElementById("f-phone").value = t.phone;
   document.getElementById("f-from").value = t.fromKey;
   document.getElementById("f-to").value = t.toKey;
   document.getElementById("f-waypoints").value = (t.waypoints || []).join(", ");
-  document.getElementById("f-date").value = t.date;
+  document.getElementById("f-date").value = toIsoDate(t.date);
   document.getElementById("f-departure").value = t.departure;
-  document.getElementById("f-arrival").value = t.arrival;
+  document.getElementById("f-arrival").value = arr.time;
+  document.getElementById("f-plus1").checked = arr.plus1;
   document.getElementById("f-duration").value = t.duration;
   document.getElementById("f-price").value = t.price;
   document.getElementById("f-seats").value = t.seats;
   document.getElementById("f-parcels").checked = t.parcels;
   document.getElementById("f-lat").value = t.pickupLat || "";
   document.getElementById("f-lng").value = t.pickupLng || "";
+  document.getElementById("f-address").value = "";
+  document.getElementById("geo-status").textContent = "";
   document.getElementById("form-title").textContent = "Редактировать рейс: " + t.carrier;
   document.getElementById("form-card").scrollIntoView({ behavior: "smooth" });
 }
@@ -250,6 +415,10 @@ function cancelEdit() {
   document.getElementById("edit-id").value = "";
   document.getElementById("admin-trip-form").reset();
   document.getElementById("form-title").textContent = "Добавить рейс";
+  document.getElementById("f-address").value = "";
+  document.getElementById("geo-status").textContent = "";
+  document.getElementById("f-lat").value = "";
+  document.getElementById("f-lng").value = "";
 }
 
 function resetToDemo() {
@@ -261,6 +430,9 @@ function resetToDemo() {
 
 // ==================== Init ====================
 renderTable();
+setupAC("f-from", "ac-from", false);
+setupAC("f-to", "ac-to", false);
+setupAC("f-waypoints", "ac-wp", true);
 </script>
 </body>
 </html>
