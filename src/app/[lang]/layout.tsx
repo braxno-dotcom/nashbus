@@ -1,11 +1,24 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { i18n } from "@/i18n/config";
 import "../globals.css";
+import RegisterSW from "@/components/RegisterSW";
 
 export const metadata: Metadata = {
   title: "NashBus — Перевезення Україна-Європа-Молдова",
   description:
     "Агрегатор пасажирських перевезень та посилок між Україною, Європою та Молдовою",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "NashBus",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#2563eb",
 };
 
 export async function generateStaticParams() {
@@ -23,11 +36,11 @@ export default async function RootLayout({
   return (
     <html lang={lang}>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#2563eb" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
       </head>
       <body className="bg-gray-50 text-gray-900 antialiased">
         {children}
+        <RegisterSW />
       </body>
     </html>
   );
