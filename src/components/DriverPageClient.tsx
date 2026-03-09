@@ -12,22 +12,28 @@ export default function DriverPageClient({ dict }: { dict: Dict }) {
   const [loggedIn, setLoggedIn] = useState(false);
   const [driverId, setDriverId] = useState("");
   const [driverName, setDriverName] = useState("");
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const session = getSession();
-    if (session) {
+    const { account, expired } = getSession();
+    if (account) {
       setLoggedIn(true);
-      setDriverId(session.id);
-      setDriverName(session.name);
+      setDriverId(account.id);
+      setDriverName(account.name);
+    } else if (expired) {
+      setSessionExpired(true);
     }
+    setLoading(false);
   }, []);
 
   function handleLogin() {
-    const session = getSession();
-    if (session) {
+    const { account } = getSession();
+    if (account) {
       setLoggedIn(true);
-      setDriverId(session.id);
-      setDriverName(session.name);
+      setDriverId(account.id);
+      setDriverName(account.name);
+      setSessionExpired(false);
     }
   }
 
@@ -38,8 +44,16 @@ export default function DriverPageClient({ dict }: { dict: Dict }) {
     setDriverName("");
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   if (!loggedIn) {
-    return <AuthForm dict={dict} onLogin={handleLogin} />;
+    return <AuthForm dict={dict} onLogin={handleLogin} sessionExpired={sessionExpired} />;
   }
 
   return (

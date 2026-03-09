@@ -5,7 +5,7 @@ import { login, register } from "@/lib/auth-storage";
 
 type Dict = Awaited<ReturnType<typeof import("@/i18n/get-dictionary").getDictionary>>;
 
-export default function AuthForm({ dict, onLogin }: { dict: Dict; onLogin: () => void }) {
+export default function AuthForm({ dict, onLogin, sessionExpired = false }: { dict: Dict; onLogin: () => void; sessionExpired?: boolean }) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -49,6 +49,14 @@ export default function AuthForm({ dict, onLogin }: { dict: Dict; onLogin: () =>
           <p className="text-[10px] text-gray-400">{dict.auth.subtitle}</p>
         </div>
 
+        {sessionExpired && (
+          <div className="bg-amber-50 border border-amber-200 rounded px-3 py-1.5 mb-3 flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-[10px] text-amber-700 font-medium">{dict.auth.sessionExpired}</p>
+          </div>
+        )}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded px-3 py-1.5 mb-3">
             <p className="text-[10px] text-red-600 font-medium">{error}</p>

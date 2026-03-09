@@ -90,7 +90,8 @@
     "registered": "Înregistrare reușită! Acum conectați-vă.",
     "wrongPassword": "Parolă greșită",
     "notFound": "Contul nu a fost găsit",
-    "welcome": "Bun venit"
+    "welcome": "Bun venit",
+    "sessionExpired": "Sesiunea a expirat. Vă rugăm să vă conectați din nou."
   },
   "complaints": {
     "title": "Cartea de reclamații și sugestii",
