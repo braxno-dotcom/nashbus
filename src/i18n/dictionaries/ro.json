@@ -1,7 +1,8 @@
 {
   "nav": {
     "title": "NashBus",
-    "addTrip": "Șofer: Adaugă cursă"
+    "addTrip": "Șofer: Adaugă cursă",
+    "myClients": "Clienții mei"
   },
   "hero": {
     "title": "NashBus: Transport Ucraina — Europa — Moldova",
@@ -47,6 +48,28 @@
     "phone": "Telefonul dvs. (Viber/WhatsApp)",
     "submit": "Publică cursa",
     "success": "Cursa a fost adăugată! Vă vom contacta pentru confirmare."
+  },
+  "clients": {
+    "title": "Clienții mei",
+    "subtitle": "Baza de clienți pentru procesarea rapidă a coletelor",
+    "name": "Numele clientului",
+    "phone": "Telefonul clientului",
+    "address": "Adresa de livrare",
+    "save": "Salvează clientul",
+    "saved": "Clientul a fost salvat!",
+    "noClients": "Nu aveți clienți încă. Adăugați primul!",
+    "addressChanged": "Atenție! Acest client și-a schimbat adresa de livrare",
+    "previousAddress": "Adresa anterioară",
+    "sendReceipt": "Trimite chitanța destinatarului",
+    "receiptMessage": "NashBus — Chitanță\nCursa: {from} → {to}\nData: {date}\nAutobuz: {bus}\nClient: {client}\nAdresa de livrare: {address}\nStatus: Confirmat ✓",
+    "busNumber": "Numărul autobuzului",
+    "routeFrom": "Cursa de la",
+    "routeTo": "Cursa la",
+    "routeDate": "Data cursei",
+    "delete": "Șterge",
+    "edit": "Editează",
+    "generateReceipt": "Generează chitanță",
+    "via": "Trimite prin"
   },
   "cities": {
     "paris": "Paris",
