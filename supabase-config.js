@@ -1,0 +1,85 @@
+// ==================== Supabase Client ====================
+var SUPABASE_URL = "https://wxwjsyhrykiexkkoyhoz.supabase.co";
+var SUPABASE_KEY = "sb_publishable_yg_ffZhc_QYaj-gfiF6ODQ_7tizZMuT";
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ==================== DB ↔ JS mapping ====================
+function dbToTrip(row) {
+  return {
+    id: row.id,
+    carrierId: row.carrier_id,
+    carrier: row.carrier,
+    fromKey: row.from_key,
+    toKey: row.to_key,
+    date: row.trip_date,
+    departure: row.departure,
+    arrival: row.arrival,
+    duration: row.duration,
+    price: row.price,
+    seats: row.seats,
+    parcels: row.parcels,
+    pickupLat: row.pickup_lat,
+    pickupLng: row.pickup_lng,
+    phone: row.phone,
+    waypoints: row.waypoints || []
+  };
+}
+
+function tripToDb(trip) {
+  var obj = {
+    carrier_id: trip.carrierId,
+    carrier: trip.carrier,
+    from_key: trip.fromKey,
+    to_key: trip.toKey,
+    trip_date: trip.date,
+    departure: trip.departure,
+    arrival: trip.arrival,
+    duration: trip.duration,
+    price: trip.price,
+    seats: trip.seats,
+    parcels: trip.parcels,
+    pickup_lat: trip.pickupLat,
+    pickup_lng: trip.pickupLng,
+    phone: trip.phone,
+    waypoints: trip.waypoints || []
+  };
+  if (trip.id) obj.id = trip.id;
+  return obj;
+}
+
+// ==================== CRUD helpers ====================
+async function sbLoadTrips() {
+  var { data, error } = await sb.from("routes").select("*").order("created_at");
+  if (error) { console.error("Supabase load error:", error); return []; }
+  return data.map(dbToTrip);
+}
+
+async function sbInsertTrip(trip) {
+  var { data, error } = await sb.from("routes").insert(tripToDb(trip)).select().single();
+  if (error) { console.error("Supabase insert error:", error); return null; }
+  return dbToTrip(data);
+}
+
+async function sbUpdateTrip(trip) {
+  var { data, error } = await sb.from("routes").update(tripToDb(trip)).eq("id", trip.id).select().single();
+  if (error) { console.error("Supabase update error:", error); return null; }
+  return dbToTrip(data);
+}
+
+async function sbDeleteTrip(id) {
+  var { error } = await sb.from("routes").delete().eq("id", id);
+  if (error) { console.error("Supabase delete error:", error); return false; }
+  return true;
+}
+
+async function sbResetToDemo(demoTrips) {
+  await sb.from("routes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  var rows = demoTrips.map(function(t) {
+    var r = tripToDb(t);
+    delete r.id;
+    return r;
+  });
+  var { data, error } = await sb.from("routes").insert(rows).select();
+  if (error) { console.error("Supabase reset error:", error); return []; }
+  return data.map(dbToTrip);
+}

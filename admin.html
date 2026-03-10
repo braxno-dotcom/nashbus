@@ -182,6 +182,8 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 <script>
 // ==================== Auth gate ====================
 (function() {
@@ -289,22 +291,15 @@ function applyTranslations() {
   });
 }
 
-// ==================== Shared keys ====================
-var TRIPS_KEY = "nashbus_trips";
+// ==================== Data (Supabase) ====================
 var DEFAULT_TRIPS = [
-  { id: "1", carrierId: "eurotrans", carrier: "EuroTrans", fromKey: "paris", toKey: "kyiv", date: "15.03.2026", departure: "06:00", arrival: "14:00+1", duration: "32h", price: "€95", seats: 14, parcels: true, pickupLat: 48.8566, pickupLng: 2.3522, phone: "+380501234567", waypoints: ["strasbourg","nuremberg","prague","krakow","lviv","ternopil","zhytomyr"] },
-  { id: "2", carrierId: "berlinlvivbus", carrier: "BerlinLvivBus", fromKey: "berlin", toKey: "lviv", date: "16.03.2026", departure: "18:00", arrival: "16:00+1", duration: "22h", price: "€75", seats: 10, parcels: true, pickupLat: 52.52, pickupLng: 13.405, phone: "+380671234567", waypoints: ["wroclaw","katowice","krakow","rzeszow","ivanofrankivsk"] },
-  { id: "3", carrierId: "warszawaodesa", carrier: "WarszawaOdesa", fromKey: "warsaw", toKey: "odesa", date: "17.03.2026", departure: "07:00", arrival: "08:00+1", duration: "25h", price: "€80", seats: 8, parcels: true, pickupLat: 52.2297, pickupLng: 21.0122, phone: "+380931234567", waypoints: ["lublin","lviv","ternopil","vinnytsya","kyiv","mykolaiv"] },
-  { id: "4", carrierId: "moldovaexpress", carrier: "MoldovaExpress", fromKey: "chisinau", toKey: "chernivtsi", date: "18.03.2026", departure: "06:30", arrival: "14:00", duration: "7.5h", price: "€30", seats: 6, parcels: false, pickupLat: 47.0105, pickupLng: 28.8638, phone: "+373691234567", waypoints: ["tiraspol","odesa","iasi","suceava","siret"] }
+  { carrierId: "eurotrans", carrier: "EuroTrans", fromKey: "paris", toKey: "kyiv", date: "15.03.2026", departure: "06:00", arrival: "14:00+1", duration: "32h", price: "€95", seats: 14, parcels: true, pickupLat: 48.8566, pickupLng: 2.3522, phone: "+380501234567", waypoints: ["strasbourg","nuremberg","prague","krakow","lviv","ternopil","zhytomyr"] },
+  { carrierId: "berlinlvivbus", carrier: "BerlinLvivBus", fromKey: "berlin", toKey: "lviv", date: "16.03.2026", departure: "18:00", arrival: "16:00+1", duration: "22h", price: "€75", seats: 10, parcels: true, pickupLat: 52.52, pickupLng: 13.405, phone: "+380671234567", waypoints: ["wroclaw","katowice","krakow","rzeszow","ivanofrankivsk"] },
+  { carrierId: "warszawaodesa", carrier: "WarszawaOdesa", fromKey: "warsaw", toKey: "odesa", date: "17.03.2026", departure: "07:00", arrival: "08:00+1", duration: "25h", price: "€80", seats: 8, parcels: true, pickupLat: 52.2297, pickupLng: 21.0122, phone: "+380931234567", waypoints: ["lublin","lviv","ternopil","vinnytsya","kyiv","mykolaiv"] },
+  { carrierId: "moldovaexpress", carrier: "MoldovaExpress", fromKey: "chisinau", toKey: "chernivtsi", date: "18.03.2026", departure: "06:30", arrival: "14:00", duration: "7.5h", price: "€30", seats: 6, parcels: false, pickupLat: 47.0105, pickupLng: 28.8638, phone: "+373691234567", waypoints: ["tiraspol","odesa","iasi","suceava","siret"] }
 ];
 
-function loadTrips() {
-  var s = localStorage.getItem(TRIPS_KEY);
-  return s ? JSON.parse(s) : DEFAULT_TRIPS;
-}
-function saveTrips(list) { localStorage.setItem(TRIPS_KEY, JSON.stringify(list)); }
-
-var trips = loadTrips();
+var trips = [];
 
 // ==================== Render ====================
 function renderTable() {
@@ -461,7 +456,7 @@ function setupAC(inputId, listId, isMulti) {
 }
 
 // ==================== CRUD ====================
-function saveTrip(e) {
+async function saveTrip(e) {
   e.preventDefault();
   var editId = document.getElementById("edit-id").value;
   var wpRaw = document.getElementById("f-waypoints").value;
@@ -469,7 +464,6 @@ function saveTrip(e) {
   var arrTime = document.getElementById("f-arrival").value;
   var plusDays = parseInt(document.getElementById("f-plus-days").value) || 0;
   var trip = {
-    id: editId || Date.now().toString(36),
     carrierId: document.getElementById("f-carrier-id").value.trim().toLowerCase(),
     carrier: document.getElementById("f-carrier").value,
     fromKey: document.getElementById("f-from").value.trim(),
@@ -487,12 +481,12 @@ function saveTrip(e) {
     waypoints: waypoints
   };
   if (editId) {
-    var idx = trips.findIndex(function(t) { return t.id === editId; });
-    if (idx !== -1) trips[idx] = trip;
+    trip.id = editId;
+    await sbUpdateTrip(trip);
   } else {
-    trips.push(trip);
+    await sbInsertTrip(trip);
   }
-  saveTrips(trips);
+  trips = await sbLoadTrips();
   cancelEdit();
   renderTable();
 }
@@ -524,10 +518,10 @@ function editTrip(id) {
   document.getElementById("form-card").scrollIntoView({ behavior: "smooth" });
 }
 
-function deleteTrip(id) {
+async function deleteTrip(id) {
   if (!confirm(at("confirmDelete"))) return;
-  trips = trips.filter(function(t) { return t.id !== id; });
-  saveTrips(trips);
+  await sbDeleteTrip(id);
+  trips = await sbLoadTrips();
   renderTable();
 }
 
@@ -541,19 +535,23 @@ function cancelEdit() {
   document.getElementById("f-lng").value = "";
 }
 
-function resetToDemo() {
+async function resetToDemo() {
   if (!confirm(at("confirmReset"))) return;
-  trips = JSON.parse(JSON.stringify(DEFAULT_TRIPS));
-  saveTrips(trips);
+  trips = await sbResetToDemo(DEFAULT_TRIPS);
   renderTable();
 }
 
 // ==================== Init ====================
 applyTranslations();
-renderTable();
 setupAC("f-from", "ac-from", false);
 setupAC("f-to", "ac-to", false);
 setupAC("f-waypoints", "ac-wp", true);
+
+// Load trips from Supabase then render
+sbLoadTrips().then(function(data) {
+  trips = data;
+  renderTable();
+});
 </script>
 </body>
 </html>
