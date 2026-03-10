@@ -56,7 +56,11 @@
     "success": "Рейс добавлен!",
     "waypoints": "Промежуточные остановки",
     "addWaypoint": "Добавить остановку",
-    "removeWaypoint": "Удалить"
+    "removeWaypoint": "Удалить",
+    "logo": "Логотип компании",
+    "logoUpload": "Загрузить фото",
+    "logoUploading": "Загрузка...",
+    "logoDelete": "Удалить фото"
   },
   "clients": {
     "title": "Мои клиенты",

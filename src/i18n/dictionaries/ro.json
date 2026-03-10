@@ -56,7 +56,11 @@
     "success": "Cursa a fost adăugată!",
     "waypoints": "Opriri intermediare",
     "addWaypoint": "Adaugă oprire",
-    "removeWaypoint": "Șterge"
+    "removeWaypoint": "Șterge",
+    "logo": "Logo-ul companiei",
+    "logoUpload": "Încarcă foto",
+    "logoUploading": "Se încarcă...",
+    "logoDelete": "Șterge foto"
   },
   "clients": {
     "title": "Clienții mei",
