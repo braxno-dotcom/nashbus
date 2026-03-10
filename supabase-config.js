@@ -21,7 +21,14 @@ function dbToTrip(row) {
     pickupLat: row.pickup_lat,
     pickupLng: row.pickup_lng,
     phone: row.phone,
-    waypoints: row.waypoints || []
+    waypoints: row.waypoints || [],
+    wifi: row.wifi || false,
+    powerOutlets: row.power_outlets || false,
+    ac: row.ac || false,
+    toilet: row.toilet || false,
+    luggage: row.luggage || false,
+    pets: row.pets || false,
+    logoUrl: row.logo_url || ""
   };
 }
 
@@ -41,7 +48,14 @@ function tripToDb(trip) {
     pickup_lat: trip.pickupLat,
     pickup_lng: trip.pickupLng,
     phone: trip.phone,
-    waypoints: trip.waypoints || []
+    waypoints: trip.waypoints || [],
+    wifi: trip.wifi || false,
+    power_outlets: trip.powerOutlets || false,
+    ac: trip.ac || false,
+    toilet: trip.toilet || false,
+    luggage: trip.luggage || false,
+    pets: trip.pets || false,
+    logo_url: trip.logoUrl || ""
   };
   if (trip.id) obj.id = trip.id;
   return obj;

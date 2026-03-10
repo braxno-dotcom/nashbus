@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#2563eb">
   <title>NashBus — Админ-панель</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     .admin-header { background: #1e293b; }
     .admin-body { padding: 48px 16px 32px; }
@@ -36,6 +37,10 @@
     .checkbox-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
     .checkbox-row input[type=checkbox] { width: auto; }
     .checkbox-row label { font-size: 11px; color: #374151; margin: 0; }
+    .amenity-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+    .amenity-grid label { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #374151; cursor: pointer; }
+    .amenity-grid input { width: auto; margin: 0; }
+    .amenity-grid i { width: 14px; text-align: center; color: #64748b; font-size: 12px; }
     /* Autocomplete dropdown */
     .ac-wrap { position: relative; }
     .ac-list { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; max-height: 150px; overflow-y: auto; z-index: 50; display: none; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
@@ -145,6 +150,21 @@
           <div class="form-section"><label data-i18n="f.lat">Широта</label><input type="text" id="f-lat" placeholder="48.8566" readonly style="background:#f9fafb"></div>
           <div class="form-section"><label data-i18n="f.lng">Долгота</label><input type="text" id="f-lng" placeholder="2.3522" readonly style="background:#f9fafb"></div>
         </div>
+        <div class="form-section">
+          <label data-i18n="f.logoUrl">Логотип / фото (URL)</label>
+          <input type="url" id="f-logo" placeholder="https://example.com/logo.png">
+        </div>
+        <div class="form-section">
+          <label data-i18n="f.amenities">Удобства</label>
+          <div class="amenity-grid">
+            <label><input type="checkbox" id="f-wifi"><i class="fas fa-wifi"></i> Wi-Fi</label>
+            <label><input type="checkbox" id="f-power"><i class="fas fa-plug"></i> <span data-i18n="f.power">Розетки</span></label>
+            <label><input type="checkbox" id="f-ac"><i class="fas fa-snowflake"></i> <span data-i18n="f.ac">Кондиционер</span></label>
+            <label><input type="checkbox" id="f-toilet"><i class="fas fa-restroom"></i> <span data-i18n="f.toilet">Туалет</span></label>
+            <label><input type="checkbox" id="f-luggage"><i class="fas fa-suitcase-rolling"></i> <span data-i18n="f.luggage">Багаж</span></label>
+            <label><input type="checkbox" id="f-pets"><i class="fas fa-paw"></i> <span data-i18n="f.pets">Животные</span></label>
+          </div>
+        </div>
         <div class="checkbox-row">
           <input type="checkbox" id="f-parcels">
           <label for="f-parcels" data-i18n="f.parcels">Принимает посылки</label>
@@ -218,7 +238,9 @@ var ADMIN_DICT = {
       waypoints: "Проміжні зупинки (через кому)", date: "Дата", departure: "Відправлення", arrival: "Прибуття",
       duration: "У дорозі", price: "Ціна", seats: "Місць", address: "Точка збору (адреса)",
       addressHint: "Варшава, центральний вокзал", find: "📍 Знайти",
-      lat: "Широта", lng: "Довгота", parcels: "Приймає посилки", save: "Зберегти", cancel: "Скасувати" },
+      lat: "Широта", lng: "Довгота", logoUrl: "Логотип / фото (URL)", amenities: "Зручності",
+      power: "Розетки", ac: "Кондиціонер", toilet: "Туалет", luggage: "Багаж", pets: "Тварини",
+      parcels: "Приймає посилки", save: "Зберегти", cancel: "Скасувати" },
     th: { carrier: "Перевізник", route: "Маршрут", stops: "Зупинки", date: "Дата", price: "Ціна", seats: "Місць", actions: "Дії" }
   },
   ru: {
@@ -237,7 +259,9 @@ var ADMIN_DICT = {
       waypoints: "Промежуточные остановки (через запятую)", date: "Дата", departure: "Отправление", arrival: "Прибытие",
       duration: "В пути", price: "Цена", seats: "Мест", address: "Точка сбора (адрес)",
       addressHint: "Варшава, центральный вокзал", find: "📍 Найти",
-      lat: "Широта", lng: "Долгота", parcels: "Принимает посылки", save: "Сохранить", cancel: "Отмена" },
+      lat: "Широта", lng: "Долгота", logoUrl: "Логотип / фото (URL)", amenities: "Удобства",
+      power: "Розетки", ac: "Кондиционер", toilet: "Туалет", luggage: "Багаж", pets: "Животные",
+      parcels: "Принимает посылки", save: "Сохранить", cancel: "Отмена" },
     th: { carrier: "Перевозчик", route: "Маршрут", stops: "Остановки", date: "Дата", price: "Цена", seats: "Мест", actions: "Действия" }
   },
   ro: {
@@ -256,7 +280,9 @@ var ADMIN_DICT = {
       waypoints: "Opriri intermediare (prin virgulă)", date: "Data", departure: "Plecare", arrival: "Sosire",
       duration: "Durată", price: "Preț", seats: "Locuri", address: "Punct de colectare (adresă)",
       addressHint: "Varșovia, gara centrală", find: "📍 Caută",
-      lat: "Latitudine", lng: "Longitudine", parcels: "Acceptă colete", save: "Salvează", cancel: "Anulare" },
+      lat: "Latitudine", lng: "Longitudine", logoUrl: "Logo / foto (URL)", amenities: "Facilități",
+      power: "Prize", ac: "Aer condiționat", toilet: "Toaletă", luggage: "Bagaj", pets: "Animale",
+      parcels: "Acceptă colete", save: "Salvează", cancel: "Anulare" },
     th: { carrier: "Transportator", route: "Rută", stops: "Opriri", date: "Data", price: "Preț", seats: "Locuri", actions: "Acțiuni" }
   }
 };
@@ -478,7 +504,14 @@ async function saveTrip(e) {
     pickupLat: parseFloat(document.getElementById("f-lat").value) || 0,
     pickupLng: parseFloat(document.getElementById("f-lng").value) || 0,
     phone: document.getElementById("f-phone").value,
-    waypoints: waypoints
+    waypoints: waypoints,
+    wifi: document.getElementById("f-wifi").checked,
+    powerOutlets: document.getElementById("f-power").checked,
+    ac: document.getElementById("f-ac").checked,
+    toilet: document.getElementById("f-toilet").checked,
+    luggage: document.getElementById("f-luggage").checked,
+    pets: document.getElementById("f-pets").checked,
+    logoUrl: document.getElementById("f-logo").value.trim()
   };
   if (editId) {
     trip.id = editId;
@@ -512,6 +545,13 @@ function editTrip(id) {
   document.getElementById("f-parcels").checked = t.parcels;
   document.getElementById("f-lat").value = t.pickupLat || "";
   document.getElementById("f-lng").value = t.pickupLng || "";
+  document.getElementById("f-logo").value = t.logoUrl || "";
+  document.getElementById("f-wifi").checked = t.wifi || false;
+  document.getElementById("f-power").checked = t.powerOutlets || false;
+  document.getElementById("f-ac").checked = t.ac || false;
+  document.getElementById("f-toilet").checked = t.toilet || false;
+  document.getElementById("f-luggage").checked = t.luggage || false;
+  document.getElementById("f-pets").checked = t.pets || false;
   document.getElementById("f-address").value = "";
   document.getElementById("geo-status").textContent = "";
   document.getElementById("form-title").textContent = at("editTripPrefix") + t.carrier;

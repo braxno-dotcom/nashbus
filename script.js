@@ -121,6 +121,7 @@ function handleSearch(e) {
   e.preventDefault();
   searchActive = true;
   document.getElementById("search-reset").style.display = "";
+  document.getElementById("trips-section").style.display = "";
   renderTrips();
 }
 function resetSearch() {
@@ -129,7 +130,7 @@ function resetSearch() {
   document.getElementById("search-to").value = "";
   document.getElementById("search-date").value = "";
   document.getElementById("search-reset").style.display = "none";
-  renderTrips();
+  document.getElementById("trips-section").style.display = "none";
 }
 
 function filterTrips() {
@@ -148,9 +149,26 @@ function filterTrips() {
   });
 }
 
+function amenityIcons(trip) {
+  var icons = [];
+  if (trip.wifi) icons.push('<span class="amenity" title="Wi-Fi"><i class="fas fa-wifi"></i></span>');
+  if (trip.powerOutlets) icons.push('<span class="amenity" title="Power"><i class="fas fa-plug"></i></span>');
+  if (trip.ac) icons.push('<span class="amenity" title="A/C"><i class="fas fa-snowflake"></i></span>');
+  if (trip.toilet) icons.push('<span class="amenity" title="WC"><i class="fas fa-restroom"></i></span>');
+  if (trip.luggage) icons.push('<span class="amenity" title="Luggage"><i class="fas fa-suitcase-rolling"></i></span>');
+  if (trip.pets) icons.push('<span class="amenity" title="Pets"><i class="fas fa-paw"></i></span>');
+  return icons.length ? '<div class="trip-amenities">' + icons.join('') + '</div>' : '';
+}
+
+function carrierLogo(trip) {
+  if (trip.logoUrl) return '<img class="trip-logo" src="' + trip.logoUrl + '" alt="' + trip.carrier + '">';
+  return '<div class="trip-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17a2 2 0 002 2h4a2 2 0 002-2M8 17H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3M8 17v2m8-2v2M3 11h18M7 7h.01M17 7h.01"/></svg></div>';
+}
+
 function renderTrips() {
   const grid = document.getElementById("trips-grid");
   const noRes = document.getElementById("no-results");
+  if (!searchActive) { grid.innerHTML = ""; noRes.style.display = "none"; return; }
   const filtered = filterTrips();
   if (filtered.length === 0) {
     grid.innerHTML = "";
@@ -171,8 +189,9 @@ function renderTrips() {
     const hasWP = trip.waypoints.length > 0;
     return '<div class="trip-card">' +
       '<button class="trip-fav" onclick="toggleFav(this)"><svg fill="none" stroke="#d1d5db" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></button>' +
-      '<div class="trip-top"><div class="trip-carrier"><div class="trip-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17a2 2 0 002 2h4a2 2 0 002-2M8 17H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3M8 17v2m8-2v2M3 11h18M7 7h.01M17 7h.01"/></svg></div><div><p class="trip-carrier-name">' + trip.carrier + '</p><p class="trip-carrier-date">' + trip.date + '</p></div></div><span class="trip-price">' + trip.price + '</span></div>' +
+      '<div class="trip-top"><div class="trip-carrier">' + carrierLogo(trip) + '<div><p class="trip-carrier-name">' + trip.carrier + '</p><p class="trip-carrier-date">' + trip.date + '</p></div></div><span class="trip-price">' + trip.price + '</span></div>' +
       '<div class="trip-route"><div class="city"><p class="time">' + trip.departure + '</p><p class="name">' + from + '</p></div><div class="arrow"><span>→</span><span>' + trip.duration + '</span></div><div class="city right"><p class="time">' + trip.arrival + '</p><p class="name">' + to + '</p></div></div>' +
+      amenityIcons(trip) +
       '<div class="trip-badges"><span class="badge badge-seats">' + trip.seats + ' ' + t("trips.seats") + '</span>' +
       (trip.parcels ? '<span class="badge badge-parcels">' + t("trips.parcels") + '</span>' : '') +
       (hasWP ? '<button class="badge badge-route" onclick="toggleRoute(\'' + trip.id + '\')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>' + t("trips.route") + ' (' + route.length + ')</button>' : '') +
