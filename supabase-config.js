@@ -1,6 +1,6 @@
 // ==================== Supabase Client ====================
 var SUPABASE_URL = "https://wxwjsyhrykiexkkoyhoz.supabase.co";
-var SUPABASE_KEY = "sb_publishable_yg_ffZhc_QYaj-gfiF6ODQ_7tizZMuT";
+var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4d2pzeWhyeWtpZXhra295aG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjEwNDcsImV4cCI6MjA4ODczNzA0N30.53Ww3hcMl6xirqELFvgZGe-k_Oxfjx6xyAaEAkcOjJ4";
 var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ==================== DB ↔ JS mapping ====================
