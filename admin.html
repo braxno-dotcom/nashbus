@@ -37,6 +37,17 @@
     .checkbox-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
     .checkbox-row input[type=checkbox] { width: auto; }
     .checkbox-row label { font-size: 11px; color: #374151; margin: 0; }
+    /* Logo upload */
+    .logo-upload-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .btn-upload { display: inline-flex; align-items: center; gap: 5px; background: #2563eb; color: #fff; font-size: 10px; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: background .2s; }
+    .btn-upload:hover { background: #1d4ed8; }
+    .btn-upload.uploading { opacity: .5; pointer-events: none; }
+    .upload-status { font-size: 10px; color: #9ca3af; }
+    .upload-status.ok { color: #16a34a; }
+    .upload-status.err { color: #dc2626; }
+    .logo-preview { margin-top: 4px; }
+    .logo-preview img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; border: 1px solid #e2e8f0; }
+    .logo-preview .logo-remove { background: none; border: none; color: #dc2626; font-size: 10px; margin-left: 6px; cursor: pointer; }
     .amenity-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
     .amenity-grid label { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #374151; cursor: pointer; }
     .amenity-grid input { width: auto; margin: 0; }
@@ -151,8 +162,14 @@
           <div class="form-section"><label data-i18n="f.lng">Долгота</label><input type="text" id="f-lng" placeholder="2.3522" readonly style="background:#f9fafb"></div>
         </div>
         <div class="form-section">
-          <label data-i18n="f.logoUrl">Логотип / фото (URL)</label>
-          <input type="url" id="f-logo" placeholder="https://example.com/logo.png">
+          <label data-i18n="f.logo">Логотип / фото автобуса</label>
+          <div class="logo-upload-row">
+            <label class="btn-upload" for="f-logo-file"><i class="fas fa-cloud-upload-alt"></i> <span data-i18n="f.chooseLogo">Выбрать файл</span></label>
+            <input type="file" id="f-logo-file" accept="image/*" style="display:none" onchange="uploadLogo(this)">
+            <span class="upload-status" id="upload-status"></span>
+          </div>
+          <input type="hidden" id="f-logo" value="">
+          <div id="logo-preview" class="logo-preview"></div>
         </div>
         <div class="form-section">
           <label data-i18n="f.amenities">Удобства</label>
@@ -238,7 +255,7 @@ var ADMIN_DICT = {
       waypoints: "Проміжні зупинки (через кому)", date: "Дата", departure: "Відправлення", arrival: "Прибуття",
       duration: "У дорозі", price: "Ціна", seats: "Місць", address: "Точка збору (адреса)",
       addressHint: "Варшава, центральний вокзал", find: "📍 Знайти",
-      lat: "Широта", lng: "Довгота", logoUrl: "Логотип / фото (URL)", amenities: "Зручності",
+      lat: "Широта", lng: "Довгота", logo: "Логотип / фото автобуса", chooseLogo: "Обрати файл", removeLogo: "Видалити", amenities: "Зручності",
       power: "Розетки", ac: "Кондиціонер", toilet: "Туалет", luggage: "Багаж", pets: "Тварини",
       parcels: "Приймає посилки", save: "Зберегти", cancel: "Скасувати" },
     th: { carrier: "Перевізник", route: "Маршрут", stops: "Зупинки", date: "Дата", price: "Ціна", seats: "Місць", actions: "Дії" }
@@ -259,7 +276,7 @@ var ADMIN_DICT = {
       waypoints: "Промежуточные остановки (через запятую)", date: "Дата", departure: "Отправление", arrival: "Прибытие",
       duration: "В пути", price: "Цена", seats: "Мест", address: "Точка сбора (адрес)",
       addressHint: "Варшава, центральный вокзал", find: "📍 Найти",
-      lat: "Широта", lng: "Долгота", logoUrl: "Логотип / фото (URL)", amenities: "Удобства",
+      lat: "Широта", lng: "Долгота", logo: "Логотип / фото автобуса", chooseLogo: "Выбрать файл", removeLogo: "Удалить", amenities: "Удобства",
       power: "Розетки", ac: "Кондиционер", toilet: "Туалет", luggage: "Багаж", pets: "Животные",
       parcels: "Принимает посылки", save: "Сохранить", cancel: "Отмена" },
     th: { carrier: "Перевозчик", route: "Маршрут", stops: "Остановки", date: "Дата", price: "Цена", seats: "Мест", actions: "Действия" }
@@ -280,7 +297,7 @@ var ADMIN_DICT = {
       waypoints: "Opriri intermediare (prin virgulă)", date: "Data", departure: "Plecare", arrival: "Sosire",
       duration: "Durată", price: "Preț", seats: "Locuri", address: "Punct de colectare (adresă)",
       addressHint: "Varșovia, gara centrală", find: "📍 Caută",
-      lat: "Latitudine", lng: "Longitudine", logoUrl: "Logo / foto (URL)", amenities: "Facilități",
+      lat: "Latitudine", lng: "Longitudine", logo: "Logo / foto autobuz", chooseLogo: "Alege fișier", removeLogo: "Șterge", amenities: "Facilități",
       power: "Prize", ac: "Aer condiționat", toilet: "Toaletă", luggage: "Bagaj", pets: "Animale",
       parcels: "Acceptă colete", save: "Salvează", cancel: "Anulare" },
     th: { carrier: "Transportator", route: "Rută", stops: "Opriri", date: "Data", price: "Preț", seats: "Locuri", actions: "Acțiuni" }
@@ -375,6 +392,53 @@ function parseArrival(val) {
   var days = m ? parseInt(m[1]) : 0;
   var time = m ? val.replace("+" + m[1], "") : val;
   return { time: time, days: days };
+}
+
+// ==================== Logo upload (Supabase Storage) ====================
+async function uploadLogo(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var btn = document.querySelector(".btn-upload");
+  var status = document.getElementById("upload-status");
+  btn.classList.add("uploading");
+  status.className = "upload-status";
+  status.textContent = "Загрузка...";
+
+  var ext = file.name.split(".").pop().toLowerCase();
+  var fileName = Date.now() + "_" + Math.random().toString(36).substring(2, 8) + "." + ext;
+
+  var { data, error } = await sb.storage.from("logos").upload(fileName, file, {
+    cacheControl: "3600",
+    upsert: false
+  });
+
+  btn.classList.remove("uploading");
+
+  if (error) {
+    status.className = "upload-status err";
+    status.textContent = "Ошибка: " + error.message;
+    return;
+  }
+
+  var { data: urlData } = sb.storage.from("logos").getPublicUrl(fileName);
+  var url = urlData.publicUrl;
+  document.getElementById("f-logo").value = url;
+  status.className = "upload-status ok";
+  status.textContent = "Загружено!";
+  showLogoPreview(url);
+  input.value = "";
+}
+
+function showLogoPreview(url) {
+  var preview = document.getElementById("logo-preview");
+  if (!url) { preview.innerHTML = ""; return; }
+  preview.innerHTML = '<img src="' + url + '" alt="logo"><button type="button" class="logo-remove" onclick="removeLogo()">✕ ' + at("f.removeLogo") + '</button>';
+}
+
+function removeLogo() {
+  document.getElementById("f-logo").value = "";
+  document.getElementById("logo-preview").innerHTML = "";
+  document.getElementById("upload-status").textContent = "";
 }
 
 // ==================== Geocoding (Nominatim) ====================
@@ -546,6 +610,8 @@ function editTrip(id) {
   document.getElementById("f-lat").value = t.pickupLat || "";
   document.getElementById("f-lng").value = t.pickupLng || "";
   document.getElementById("f-logo").value = t.logoUrl || "";
+  showLogoPreview(t.logoUrl || "");
+  document.getElementById("upload-status").textContent = "";
   document.getElementById("f-wifi").checked = t.wifi || false;
   document.getElementById("f-power").checked = t.powerOutlets || false;
   document.getElementById("f-ac").checked = t.ac || false;
@@ -573,6 +639,9 @@ function cancelEdit() {
   document.getElementById("geo-status").textContent = "";
   document.getElementById("f-lat").value = "";
   document.getElementById("f-lng").value = "";
+  document.getElementById("f-logo").value = "";
+  document.getElementById("logo-preview").innerHTML = "";
+  document.getElementById("upload-status").textContent = "";
 }
 
 async function resetToDemo() {
