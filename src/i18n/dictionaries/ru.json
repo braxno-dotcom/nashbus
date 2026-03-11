@@ -35,7 +35,9 @@
     "saved": "Сохранено",
     "removed": "Удалено из сохранённых",
     "route": "Маршрут",
-    "noResults": "Рейсы не найдены"
+    "noResults": "Рейсы не найдены",
+    "seatsLeft": "Мест: {left} из {total}",
+    "noSeats": "Мест нет"
   },
   "ad": {
     "title": "Страховка для путешествий",
@@ -60,7 +62,16 @@
     "logo": "Логотип компании",
     "logoUpload": "Загрузить фото",
     "logoUploading": "Загрузка...",
-    "logoDelete": "Удалить фото"
+    "logoDelete": "Удалить фото",
+    "maxSeats": "Макс. мест",
+    "addPassenger": "Добавить пассажира",
+    "passengerName": "Имя пассажира",
+    "passengerPhone": "Телефон",
+    "passengerFrom": "Откуда",
+    "passengerTo": "Куда",
+    "passengerSeats": "Мест",
+    "passengers": "Пассажиры",
+    "noPassengers": "Пассажиров пока нет"
   },
   "clients": {
     "title": "Мои клиенты",

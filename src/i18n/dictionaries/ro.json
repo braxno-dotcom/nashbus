@@ -35,7 +35,9 @@
     "saved": "Salvat",
     "removed": "Eliminat din salvate",
     "route": "Traseu",
-    "noResults": "Nu s-au găsit curse"
+    "noResults": "Nu s-au găsit curse",
+    "seatsLeft": "Locuri: {left} din {total}",
+    "noSeats": "Nu mai sunt locuri"
   },
   "ad": {
     "title": "Asigurare de călătorie",
@@ -60,7 +62,16 @@
     "logo": "Logo-ul companiei",
     "logoUpload": "Încarcă foto",
     "logoUploading": "Se încarcă...",
-    "logoDelete": "Șterge foto"
+    "logoDelete": "Șterge foto",
+    "maxSeats": "Locuri max.",
+    "addPassenger": "Adaugă pasager",
+    "passengerName": "Numele pasagerului",
+    "passengerPhone": "Telefon",
+    "passengerFrom": "De unde",
+    "passengerTo": "Încotro",
+    "passengerSeats": "Locuri",
+    "passengers": "Pasageri",
+    "noPassengers": "Nu sunt pasageri încă"
   },
   "clients": {
     "title": "Clienții mei",

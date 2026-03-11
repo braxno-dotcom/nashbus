@@ -35,7 +35,9 @@
     "saved": "Збережено",
     "removed": "Видалено зі збережених",
     "route": "Маршрут",
-    "noResults": "Рейсів не знайдено"
+    "noResults": "Рейсів не знайдено",
+    "seatsLeft": "Місць: {left} з {total}",
+    "noSeats": "Місць немає"
   },
   "ad": {
     "title": "Страховка для подорожей",
@@ -60,7 +62,16 @@
     "logo": "Логотип компанії",
     "logoUpload": "Завантажити фото",
     "logoUploading": "Завантаження...",
-    "logoDelete": "Видалити фото"
+    "logoDelete": "Видалити фото",
+    "maxSeats": "Макс. місць",
+    "addPassenger": "Додати пасажира",
+    "passengerName": "Ім'я пасажира",
+    "passengerPhone": "Телефон",
+    "passengerFrom": "Звідки",
+    "passengerTo": "Куди",
+    "passengerSeats": "Місць",
+    "passengers": "Пасажири",
+    "noPassengers": "Пасажирів поки немає"
   },
   "clients": {
     "title": "Мої клієнти",

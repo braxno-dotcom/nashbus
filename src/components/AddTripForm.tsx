@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 type Dict = Awaited<ReturnType<typeof import("@/i18n/get-dictionary").getDictionary>>;
+
+const SUPABASE_URL = "https://wxwjsyhrykiexkkoyhoz.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4d2pzeWhyeWtpZXhra295aG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjEwNDcsImV4cCI6MjA4ODczNzA0N30.53Ww3hcMl6xirqELFvgZGe-k_Oxfjx6xyAaEAkcOjJ4";
 
 export interface ActiveTrip {
   from: string;
@@ -10,6 +13,8 @@ export interface ActiveTrip {
   date: string;
   busNumber: string;
   waypoints: string[];
+  logoUrl?: string;
+  maxSeats?: number;
 }
 
 const ACTIVE_TRIP_KEY = "nashbus_active_trip";
@@ -19,9 +24,26 @@ export function getActiveTrip(): ActiveTrip | null {
   const data = localStorage.getItem(ACTIVE_TRIP_KEY);
   if (!data) return null;
   const parsed = JSON.parse(data);
-  // Migration: old format without waypoints
   if (!parsed.waypoints) parsed.waypoints = [];
   return parsed;
+}
+
+async function uploadLogo(file: File): Promise<string | null> {
+  const ext = file.name.split(".").pop();
+  const fileName = `logo_${Date.now()}.${ext}`;
+
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/logos/${fileName}`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "apikey": SUPABASE_KEY,
+      "Content-Type": file.type,
+    },
+    body: file,
+  });
+
+  if (!res.ok) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/logos/${fileName}`;
 }
 
 export default function AddTripForm({ dict }: { dict: Dict }) {
@@ -30,7 +52,12 @@ export default function AddTripForm({ dict }: { dict: Dict }) {
   const [to, setTo] = useState("");
   const [date, setDate] = useState("");
   const [busNumber, setBusNumber] = useState("");
+  const [maxSeats, setMaxSeats] = useState("20");
   const [waypoints, setWaypoints] = useState<string[]>([]);
+  const [logoUrl, setLogoUrl] = useState("");
+  const [logoPreview, setLogoPreview] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   function addWaypoint() {
     setWaypoints([...waypoints, ""]);
@@ -46,14 +73,40 @@ export default function AddTripForm({ dict }: { dict: Dict }) {
     setWaypoints(waypoints.filter((_, i) => i !== index));
   }
 
+  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => setLogoPreview(reader.result as string);
+    reader.readAsDataURL(file);
+
+    setUploading(true);
+    const url = await uploadLogo(file);
+    setUploading(false);
+
+    if (url) {
+      setLogoUrl(url);
+    } else {
+      alert("Upload error");
+    }
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const filteredWaypoints = waypoints.filter((w) => w.trim() !== "");
-    const trip: ActiveTrip = { from, to, date, busNumber, waypoints: filteredWaypoints };
+    const trip: ActiveTrip = {
+      from, to, date, busNumber,
+      waypoints: filteredWaypoints,
+      logoUrl: logoUrl || undefined,
+      maxSeats: parseInt(maxSeats) || 20,
+    };
     localStorage.setItem(ACTIVE_TRIP_KEY, JSON.stringify(trip));
     alert(dict.driver.success);
     setOpen(false);
   }
+
+  const driverDict = dict.driver as Record<string, string>;
 
   return (
     <>
@@ -77,6 +130,40 @@ export default function AddTripForm({ dict }: { dict: Dict }) {
             </div>
             <p className="text-[11px] text-gray-500 mb-3">{dict.driver.subtitle}</p>
             <form onSubmit={handleSubmit} className="space-y-2">
+              {/* Logo upload */}
+              <div className="flex items-center gap-3">
+                <div
+                  onClick={() => fileRef.current?.click()}
+                  className="w-14 h-14 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors overflow-hidden shrink-0"
+                >
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="logo" className="w-full h-full object-cover" />
+                  ) : (
+                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-[11px] text-gray-600 font-medium">{driverDict.logo || "Logo"}</p>
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={uploading}
+                    className="mt-1 text-[10px] text-blue-600 hover:underline disabled:text-gray-400"
+                  >
+                    {uploading ? (driverDict.logoUploading || "...") : (driverDict.logoUpload || "Upload")}
+                  </button>
+                </div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoChange}
+                  className="hidden"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <input type="text" value={from} onChange={(e) => setFrom(e.target.value)} placeholder={dict.driver.from} required className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
                 <input type="text" value={to} onChange={(e) => setTo(e.target.value)} placeholder={dict.driver.to} required className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
@@ -120,12 +207,15 @@ export default function AddTripForm({ dict }: { dict: Dict }) {
                 </button>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500" />
                 <input type="number" placeholder={dict.driver.price} min="1" required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
-                <input type="text" value={busNumber} onChange={(e) => setBusNumber(e.target.value)} placeholder={dict.clients.busNumber} className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
               </div>
-              <input type="number" placeholder={dict.driver.seats} min="1" max="60" required className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+              <div className="grid grid-cols-3 gap-2">
+                <input type="text" value={busNumber} onChange={(e) => setBusNumber(e.target.value)} placeholder={dict.clients.busNumber} className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                <input type="number" placeholder={dict.driver.seats} min="1" max="60" required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                <input type="number" value={maxSeats} onChange={(e) => setMaxSeats(e.target.value)} placeholder={driverDict.maxSeats || "Max"} min="1" max="60" className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+              </div>
               <input type="url" placeholder={dict.driver.pickupMap} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
               <input type="tel" placeholder={dict.driver.phone} required className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
               <button type="submit" className="w-full bg-yellow-400 text-gray-900 font-bold py-2.5 rounded-lg text-xs hover:bg-yellow-300 active:scale-[0.98] transition-all">

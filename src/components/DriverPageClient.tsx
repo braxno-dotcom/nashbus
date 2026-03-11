@@ -5,6 +5,7 @@ import { getSession, logout } from "@/lib/auth-storage";
 import AuthForm from "./AuthForm";
 import AddTripForm from "./AddTripForm";
 import DriverClients from "./DriverClients";
+import TripPassengers from "./TripPassengers";
 
 type Dict = Awaited<ReturnType<typeof import("@/i18n/get-dictionary").getDictionary>>;
 
@@ -171,6 +172,7 @@ export default function DriverPageClient({ dict }: { dict: Dict }) {
       </div>
 
       <AddTripForm dict={dict} />
+      <TripPassengers dict={dict} driverId={driverId} />
       <DriverClients dict={dict} driverId={driverId} />
     </div>
   );

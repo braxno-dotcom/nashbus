@@ -15,11 +15,14 @@ interface Trip {
   duration: string;
   price: string;
   seats: number;
+  maxSeats?: number;
+  bookedSeats?: number;
   parcels: boolean;
   pickupLat: number;
   pickupLng: number;
   phone: string;
   waypoints?: string[];
+  logoUrl?: string;
 }
 
 export type { Trip };
@@ -55,6 +58,11 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
   const viberUrl = `viber://chat?number=${encodeURIComponent(phone)}&draft=${encodeURIComponent(messageText)}`;
   const telUrl = `tel:${phone}`;
 
+  // Seats calculation
+  const totalSeats = trip.maxSeats || trip.seats || 20;
+  const booked = trip.bookedSeats || 0;
+  const seatsLeft = totalSeats - booked;
+
   // Close menu on click outside
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -86,11 +94,15 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
       {/* Carrier + price */}
       <div className="flex items-center justify-between mb-2 pr-7">
         <div className="flex items-center gap-1.5">
-          <div className="w-6 h-6 rounded bg-blue-50 flex items-center justify-center shrink-0">
-            <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 17a2 2 0 002 2h4a2 2 0 002-2M8 17H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3M8 17v2m8-2v2M3 11h18M7 7h.01M17 7h.01" />
-            </svg>
-          </div>
+          {trip.logoUrl ? (
+            <img src={trip.logoUrl} alt="" className="w-6 h-6 rounded object-cover shrink-0" />
+          ) : (
+            <div className="w-6 h-6 rounded bg-blue-50 flex items-center justify-center shrink-0">
+              <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 17a2 2 0 002 2h4a2 2 0 002-2M8 17H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3M8 17v2m8-2v2M3 11h18M7 7h.01M17 7h.01" />
+              </svg>
+            </div>
+          )}
           <div>
             <p className="text-xs font-semibold text-gray-800">{trip.carrier}</p>
             <p className="text-[10px] text-gray-400">{trip.date}</p>
@@ -106,7 +118,7 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
           <p className="text-xs font-bold text-gray-900 truncate">{from}</p>
         </div>
         <div className="flex flex-col items-center px-1 shrink-0">
-          <span className="text-gray-300 text-xs">→</span>
+          <span className="text-gray-300 text-xs">&rarr;</span>
           <span className="text-[9px] text-gray-400">{trip.duration}</span>
         </div>
         <div className="flex-1 min-w-0 text-right">
@@ -117,9 +129,17 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
 
       {/* Badges + Route button */}
       <div className="flex gap-1 mb-2 flex-wrap">
-        <span className="bg-gray-50 text-gray-500 px-1.5 py-px rounded text-[10px]">
-          {trip.seats} {dict.trips.seats}
-        </span>
+        {seatsLeft > 0 ? (
+          <span className="bg-gray-50 text-gray-500 px-1.5 py-px rounded text-[10px]">
+            {(dict.trips as Record<string, string>).seatsLeft
+              ?.replace("{left}", String(seatsLeft))
+              .replace("{total}", String(totalSeats)) || `${seatsLeft}/${totalSeats}`}
+          </span>
+        ) : (
+          <span className="bg-red-50 text-red-600 px-1.5 py-px rounded text-[10px] font-bold">
+            {(dict.trips as Record<string, string>).noSeats || "Мест нет"}
+          </span>
+        )}
         {trip.parcels && (
           <span className="bg-green-50 text-green-600 px-1.5 py-px rounded text-[10px]">
             {dict.trips.parcels}
