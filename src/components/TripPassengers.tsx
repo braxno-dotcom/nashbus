@@ -41,7 +41,7 @@ async function sbFetch(path: string, options?: RequestInit) {
   return res.json();
 }
 
-export default function TripPassengers({ dict, driverId }: { dict: Dict; driverId: string }) {
+export default function TripPassengers({ dict, driverId, refreshKey = 0 }: { dict: Dict; driverId: string; refreshKey?: number }) {
   const [routes, setRoutes] = useState<RouteInfo[]>([]);
   const [selectedRoute, setSelectedRoute] = useState<string>("");
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -62,7 +62,7 @@ export default function TripPassengers({ dict, driverId }: { dict: Dict; driverI
       if (data) setRoutes(data);
     }
     if (driverId) load();
-  }, [driverId]);
+  }, [driverId, refreshKey]);
 
   // Load bookings for selected route
   useEffect(() => {

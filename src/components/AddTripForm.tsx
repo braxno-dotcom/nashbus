@@ -7,27 +7,6 @@ type Dict = Awaited<ReturnType<typeof import("@/i18n/get-dictionary").getDiction
 const SUPABASE_URL = "https://wxwjsyhrykiexkkoyhoz.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4d2pzeWhyeWtpZXhra295aG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjEwNDcsImV4cCI6MjA4ODczNzA0N30.53Ww3hcMl6xirqELFvgZGe-k_Oxfjx6xyAaEAkcOjJ4";
 
-export interface ActiveTrip {
-  from: string;
-  to: string;
-  date: string;
-  busNumber: string;
-  waypoints: string[];
-  logoUrl?: string;
-  totalSeats?: number;
-}
-
-const ACTIVE_TRIP_KEY = "nashbus_active_trip";
-
-export function getActiveTrip(): ActiveTrip | null {
-  if (typeof window === "undefined") return null;
-  const data = localStorage.getItem(ACTIVE_TRIP_KEY);
-  if (!data) return null;
-  const parsed = JSON.parse(data);
-  if (!parsed.waypoints) parsed.waypoints = [];
-  return parsed;
-}
-
 async function uploadLogo(file: File): Promise<string | null> {
   const ext = file.name.split(".").pop();
   const fileName = `logo_${Date.now()}.${ext}`;
@@ -46,17 +25,29 @@ async function uploadLogo(file: File): Promise<string | null> {
   return `${SUPABASE_URL}/storage/v1/object/public/logos/${fileName}`;
 }
 
-export default function AddTripForm({ dict }: { dict: Dict }) {
+interface AddTripFormProps {
+  dict: Dict;
+  driverId: string;
+  driverName: string;
+  driverLogoUrl?: string;
+  onTripAdded?: () => void;
+}
+
+export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl, onTripAdded }: AddTripFormProps) {
   const [open, setOpen] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [date, setDate] = useState("");
   const [busNumber, setBusNumber] = useState("");
+  const [price, setPrice] = useState("");
+  const [seats, setSeats] = useState("");
   const [totalSeats, setMaxSeats] = useState("20");
+  const [phone, setPhone] = useState("");
   const [waypoints, setWaypoints] = useState<string[]>([]);
   const [logoUrl, setLogoUrl] = useState("");
   const [logoPreview, setLogoPreview] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [address, setAddress] = useState("");
   const [geoStatus, setGeoStatus] = useState("");
   const [geoOk, setGeoOk] = useState(false);
@@ -121,18 +112,58 @@ export default function AddTripForm({ dict }: { dict: Dict }) {
     }
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setSaving(true);
     const filteredWaypoints = waypoints.filter((w) => w.trim() !== "");
-    const trip: ActiveTrip = {
-      from, to, date, busNumber,
+
+    const route = {
+      carrier_id: driverId,
+      carrier: driverName,
+      from_key: from,
+      to_key: to,
+      trip_date: date,
+      price: price || "0",
+      seats: parseInt(seats) || 0,
+      total_seats: parseInt(totalSeats) || 20,
+      phone: phone,
       waypoints: filteredWaypoints,
-      logoUrl: logoUrl || undefined,
-      totalSeats: parseInt(totalSeats) || 20,
+      logo_url: logoUrl || driverLogoUrl || "",
+      pickup_lat: lat ? parseFloat(lat) : null,
+      pickup_lng: lng ? parseFloat(lng) : null,
+      parcels: false,
     };
-    localStorage.setItem(ACTIVE_TRIP_KEY, JSON.stringify(trip));
-    alert(dict.driver.success);
-    setOpen(false);
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/routes`, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=representation",
+        },
+        body: JSON.stringify(route),
+      });
+
+      if (res.ok) {
+        alert(dict.driver.success);
+        setOpen(false);
+        setFrom(""); setTo(""); setDate(""); setBusNumber("");
+        setPrice(""); setSeats(""); setMaxSeats("20"); setPhone("");
+        setWaypoints([]); setLogoUrl(""); setLogoPreview("");
+        setAddress(""); setLat(""); setLng(""); setGeoStatus(""); setGeoOk(false);
+        onTripAdded?.();
+      } else {
+        const err = await res.text();
+        console.error("Supabase insert error:", err);
+        alert("Error saving trip");
+      }
+    } catch (err) {
+      console.error("Network error:", err);
+      alert("Error saving trip");
+    }
+    setSaving(false);
   }
 
   const driverDict = dict.driver as Record<string, string>;
@@ -238,11 +269,11 @@ export default function AddTripForm({ dict }: { dict: Dict }) {
 
               <div className="grid grid-cols-2 gap-2">
                 <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500" />
-                <input type="number" placeholder={dict.driver.price} min="1" required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={dict.driver.price} min="1" required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <input type="text" value={busNumber} onChange={(e) => setBusNumber(e.target.value)} placeholder={dict.clients.busNumber} className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
-                <input type="number" placeholder={dict.driver.seats} min="1" max="60" required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                <input type="number" value={seats} onChange={(e) => setSeats(e.target.value)} placeholder={dict.driver.seats} min="1" max="60" required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
                 <input type="number" value={totalSeats} onChange={(e) => setMaxSeats(e.target.value)} placeholder={driverDict.totalSeats || "Max"} min="1" max="60" className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
               </div>
               {/* Pickup address with geocoding */}
@@ -270,8 +301,8 @@ export default function AddTripForm({ dict }: { dict: Dict }) {
                   </p>
                 )}
               </div>
-              <input type="tel" placeholder={dict.driver.phone} required className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
-              <button type="submit" className="w-full bg-yellow-400 text-gray-900 font-bold py-2.5 rounded-lg text-xs hover:bg-yellow-300 active:scale-[0.98] transition-all">
+              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={dict.driver.phone} required className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+              <button type="submit" disabled={saving} className="w-full bg-yellow-400 text-gray-900 font-bold py-2.5 rounded-lg text-xs hover:bg-yellow-300 active:scale-[0.98] transition-all disabled:opacity-50">
                 {dict.driver.submit}
               </button>
             </form>

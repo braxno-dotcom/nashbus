@@ -39,6 +39,7 @@ export default function DriverPageClient({ dict }: { dict: Dict }) {
   const [loading, setLoading] = useState(true);
   const [logoUrl, setLogoUrl] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [tripRefresh, setTripRefresh] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -171,8 +172,8 @@ export default function DriverPageClient({ dict }: { dict: Dict }) {
         />
       </div>
 
-      <AddTripForm dict={dict} />
-      <TripPassengers dict={dict} driverId={driverId} />
+      <AddTripForm dict={dict} driverId={driverId} driverName={driverName} driverLogoUrl={logoUrl} onTripAdded={() => setTripRefresh(prev => prev + 1)} />
+      <TripPassengers dict={dict} driverId={driverId} refreshKey={tripRefresh} />
       <DriverClients dict={dict} driverId={driverId} />
     </div>
   );
