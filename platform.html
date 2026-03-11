@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f172a">
+  <title>NashBus — Platform Admin</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: #f8fafc; }
+    .pa-header { background: #0f172a; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; z-index: 50; }
+    .pa-header .logo { color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; text-decoration: none; }
+    .pa-badge { color: #f472b6; font-size: 9px; font-weight: 700; padding: 2px 6px; background: rgba(244,114,182,.15); border-radius: 4px; }
+    .pa-body { padding: 56px 16px 32px; max-width: 900px; margin: 0 auto; }
+    .pa-title { font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 4px; }
+    .pa-sub { font-size: 11px; color: #9ca3af; margin-bottom: 16px; }
+    .pa-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
+    .pa-card { background: #fff; border: 1px solid #f3f4f6; border-radius: 10px; padding: 14px; text-align: center; }
+    .pa-num { font-size: 28px; font-weight: 700; }
+    .pa-label { font-size: 10px; color: #9ca3af; font-weight: 500; margin-top: 2px; }
+    .pa-section { background: #fff; border: 1px solid #f3f4f6; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+    .pa-section h3 { font-size: 13px; font-weight: 700; color: #1f2937; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .pa-table { width: 100%; border-collapse: collapse; }
+    .pa-table th { font-size: 10px; font-weight: 600; color: #64748b; text-align: left; padding: 6px 8px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+    .pa-table td { font-size: 11px; padding: 8px; border-bottom: 1px solid #f1f5f9; }
+    .pa-table tr:hover td { background: #f8fafc; }
+    .pa-btn { font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 5px; border: none; cursor: pointer; }
+    .pa-btn-red { background: #fef2f2; color: #dc2626; }
+    .pa-btn-red:hover { background: #fee2e2; }
+    .pa-btn-blue { background: #eff6ff; color: #2563eb; }
+    .pa-btn-blue:hover { background: #dbeafe; }
+    .pa-btn-green { background: #f0fdf4; color: #16a34a; }
+    .pa-btn-green:hover { background: #dcfce7; }
+    .pa-empty { text-align: center; font-size: 11px; color: #9ca3af; padding: 20px; }
+    .pa-msg { background: #f9fafb; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+    .pa-msg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .pa-msg-name { font-size: 11px; font-weight: 600; color: #1f2937; }
+    .pa-msg-date { font-size: 9px; color: #9ca3af; }
+    .pa-msg-type { font-size: 9px; font-weight: 600; padding: 1px 5px; border-radius: 3px; }
+    .pa-msg-text { font-size: 11px; color: #4b5563; line-height: 1.4; }
+    .pa-month-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .pa-month-nav button { background: #f1f5f9; border: none; border-radius: 5px; padding: 4px 10px; font-size: 11px; font-weight: 600; color: #64748b; cursor: pointer; }
+    .pa-month-nav button:hover { background: #e2e8f0; }
+    .pa-month-name { font-size: 12px; font-weight: 600; color: #1f2937; min-width: 120px; text-align: center; }
+    .pa-tabs { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+    .pa-tab { font-size: 10px; font-weight: 600; padding: 5px 12px; border-radius: 6px; border: none; cursor: pointer; background: #f1f5f9; color: #64748b; }
+    .pa-tab.active { background: #2563eb; color: #fff; }
+    .pa-loading { display: flex; justify-content: center; padding: 30px; }
+    .pa-spinner { width: 24px; height: 24px; border: 2px solid #2563eb; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 600px) {
+      .pa-grid { grid-template-columns: repeat(2, 1fr); }
+      .pa-table td, .pa-table th { padding: 5px 6px; font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="pa-header">
+  <a href="index.html" class="logo">
+    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17a2 2 0 002 2h4a2 2 0 002-2M8 17H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3M8 17v2m8-2v2M3 11h18M7 7h.01M17 7h.01"/></svg>
+    NashBus
+  </a>
+  <span class="pa-badge">PLATFORM ADMIN</span>
+</header>
+
+<div class="pa-body">
+  <h1 class="pa-title">Панель управления платформой</h1>
+  <p class="pa-sub">Полная статистика, управление водителями, рейсами и обращениями</p>
+
+  <!-- Loading -->
+  <div id="pa-loading" class="pa-loading"><div class="pa-spinner"></div></div>
+
+  <div id="pa-content" style="display:none">
+
+    <!-- Tabs -->
+    <div class="pa-tabs">
+      <button class="pa-tab active" onclick="switchTab('dashboard')">Дашборд</button>
+      <button class="pa-tab" onclick="switchTab('drivers')">Водители</button>
+      <button class="pa-tab" onclick="switchTab('routes')">Все рейсы</button>
+      <button class="pa-tab" onclick="switchTab('passengers')">Пассажиры</button>
+      <button class="pa-tab" onclick="switchTab('messages')">Обращения</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="tab-dashboard">
+      <!-- Month navigation -->
+      <div class="pa-month-nav">
+        <button onclick="changeMonth(-1)">← </button>
+        <span id="month-label" class="pa-month-name"></span>
+        <button onclick="changeMonth(1)"> →</button>
+      </div>
+
+      <div class="pa-grid" id="stats-grid"></div>
+
+      <!-- Monthly chart -->
+      <div class="pa-section">
+        <h3>Динамика по месяцам (рейсы / пассажиры)</h3>
+        <div id="monthly-chart" style="display:flex;align-items:flex-end;gap:6px;height:120px;padding:8px 0"></div>
+      </div>
+
+      <!-- Top routes -->
+      <div class="pa-section">
+        <h3>Популярные маршруты</h3>
+        <div id="top-routes"></div>
+      </div>
+    </div>
+
+    <!-- Drivers -->
+    <div id="tab-drivers" style="display:none">
+      <div class="pa-section">
+        <h3>Зарегистрированные водители</h3>
+        <table class="pa-table">
+          <thead><tr><th>Перевозчик / ID</th><th>Рейсов</th><th>Пассажиров</th><th>Действия</th></tr></thead>
+          <tbody id="drivers-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- All routes -->
+    <div id="tab-routes" style="display:none">
+      <div class="pa-section">
+        <h3>Все рейсы на платформе</h3>
+        <table class="pa-table">
+          <thead><tr><th>Маршрут</th><th>Дата</th><th>Перевозчик</th><th>Места</th><th>Действия</th></tr></thead>
+          <tbody id="routes-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Passengers -->
+    <div id="tab-passengers" style="display:none">
+      <div class="pa-section">
+        <h3>Все бронирования</h3>
+        <table class="pa-table">
+          <thead><tr><th>Пассажир</th><th>Телефон</th><th>Маршрут</th><th>Мест</th><th>Действия</th></tr></thead>
+          <tbody id="passengers-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div id="tab-messages" style="display:none">
+      <div class="pa-section">
+        <h3>Обращения пользователей</h3>
+        <div id="messages-list"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ==================== Auth ====================
+(function() {
+  var KEY = "nashbus_platform_auth";
+  var PASS = "platform2026";
+  var saved = sessionStorage.getItem(KEY);
+  if (saved === PASS) return;
+  var input = prompt("Пароль для панели управления платформой:");
+  if (input === PASS) {
+    sessionStorage.setItem(KEY, PASS);
+  } else {
+    alert("Неверный пароль");
+    window.location.href = "index.html";
+  }
+})();
+
+// ==================== Supabase ====================
+var SUPABASE_URL = "https://wxwjsyhrykiexkkoyhoz.supabase.co";
+var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4d2pzeWhyeWtpZXhra295aG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjEwNDcsImV4cCI6MjA4ODczNzA0N30.53Ww3hcMl6xirqELFvgZGe-k_Oxfjx6xyAaEAkcOjJ4";
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ==================== State ====================
+var allRoutes = [];
+var allBookings = [];
+var allMessages = [];
+var currentMonth = new Date().getMonth();
+var currentYear = new Date().getFullYear();
+var MONTHS = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+
+// ==================== Tabs ====================
+function switchTab(name) {
+  ["dashboard","drivers","routes","passengers","messages"].forEach(function(t) {
+    document.getElementById("tab-" + t).style.display = t === name ? "" : "none";
+  });
+  document.querySelectorAll(".pa-tab").forEach(function(btn, i) {
+    var tabs = ["dashboard","drivers","routes","passengers","messages"];
+    btn.classList.toggle("active", tabs[i] === name);
+  });
+  if (name === "messages") renderMessages();
+}
+
+// ==================== Load Data ====================
+async function loadAll() {
+  var [rRes, bRes, mRes] = await Promise.all([
+    sb.from("routes").select("*").order("created_at", { ascending: false }),
+    sb.from("bookings").select("*").order("created_at", { ascending: false }),
+    sb.from("complaints").select("*").order("created_at", { ascending: false })
+  ]);
+
+  allRoutes = rRes.data || [];
+  allBookings = bRes.data || [];
+  allMessages = mRes.error ? [] : (mRes.data || []);
+
+  document.getElementById("pa-loading").style.display = "none";
+  document.getElementById("pa-content").style.display = "";
+  renderDashboard();
+  renderDrivers();
+  renderRoutes();
+  renderPassengers();
+}
+
+// ==================== Dashboard ====================
+function renderDashboard() {
+  var mStart = currentYear + "-" + String(currentMonth + 1).padStart(2, "0") + "-01";
+  var nMonth = currentMonth === 11 ? (currentYear + 1) + "-01-01" : currentYear + "-" + String(currentMonth + 2).padStart(2, "0") + "-01";
+
+  document.getElementById("month-label").textContent = MONTHS[currentMonth] + " " + currentYear;
+
+  var monthRoutes = allRoutes.filter(function(r) { return r.trip_date >= mStart && r.trip_date < nMonth; });
+  var monthRouteIds = {};
+  monthRoutes.forEach(function(r) { monthRouteIds[r.id] = true; });
+
+  var monthPax = 0;
+  var totalPax = allBookings.reduce(function(s, b) { return s + (b.seats_count || 1); }, 0);
+  allBookings.forEach(function(b) { if (monthRouteIds[b.route_id]) monthPax += b.seats_count || 1; });
+
+  var carriers = {};
+  allRoutes.forEach(function(r) { carriers[r.carrier_id || r.carrier] = true; });
+  var totalDrivers = Object.keys(carriers).length;
+
+  var totalSeats = allRoutes.reduce(function(s, r) { return s + (r.total_seats || r.seats || 20); }, 0);
+
+  document.getElementById("stats-grid").innerHTML =
+    card(monthRoutes.length, "Рейсов за месяц", "#2563eb", "#eff6ff") +
+    card(monthPax, "Пассажиров за месяц", "#16a34a", "#f0fdf4") +
+    card(totalPax, "Всего через платформу", "#9333ea", "#faf5ff") +
+    card(allRoutes.length, "Рейсов всего", "#0891b2", "#ecfeff") +
+    card(totalDrivers, "Перевозчиков", "#d97706", "#fffbeb") +
+    card(totalSeats, "Мест всего", "#64748b", "#f8fafc");
+
+  renderMonthlyChart();
+  renderTopRoutes();
+}
+
+function card(num, label, color, bg) {
+  return '<div class="pa-card" style="border-color:' + bg + '"><div class="pa-num" style="color:' + color + '">' + num + '</div><div class="pa-label">' + label + '</div></div>';
+}
+
+function changeMonth(delta) {
+  currentMonth += delta;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  renderDashboard();
+}
+
+function renderMonthlyChart() {
+  var container = document.getElementById("monthly-chart");
+  var months = [];
+  var now = new Date();
+  for (var i = 5; i >= 0; i--) {
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    var ms = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-01";
+    var nm = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+    var ns = nm.getFullYear() + "-" + String(nm.getMonth() + 1).padStart(2, "0") + "-01";
+    var mRoutes = allRoutes.filter(function(r) { return r.trip_date >= ms && r.trip_date < ns; });
+    var mIds = {};
+    mRoutes.forEach(function(r) { mIds[r.id] = true; });
+    var mPax = allBookings.filter(function(b) { return mIds[b.route_id]; }).reduce(function(s, b) { return s + (b.seats_count || 1); }, 0);
+    months.push({ label: MONTHS[d.getMonth()].substring(0, 3), trips: mRoutes.length, pax: mPax });
+  }
+
+  var maxVal = Math.max(1, Math.max.apply(null, months.map(function(m) { return Math.max(m.trips, m.pax); })));
+  container.innerHTML = months.map(function(m) {
+    var tH = Math.max(4, (m.trips / maxVal) * 90);
+    var pH = Math.max(4, (m.pax / maxVal) * 90);
+    return '<div style="flex:1;text-align:center">' +
+      '<div style="display:flex;align-items:flex-end;justify-content:center;gap:2px;height:90px">' +
+      '<div style="width:14px;background:#93c5fd;border-radius:3px 3px 0 0;height:' + tH + 'px" title="Рейсов: ' + m.trips + '"></div>' +
+      '<div style="width:14px;background:#86efac;border-radius:3px 3px 0 0;height:' + pH + 'px" title="Пассажиров: ' + m.pax + '"></div>' +
+      '</div>' +
+      '<div style="font-size:9px;color:#9ca3af;margin-top:4px">' + m.label + '</div>' +
+      '<div style="font-size:8px;color:#64748b">' + m.trips + '/' + m.pax + '</div>' +
+      '</div>';
+  }).join("");
+}
+
+function renderTopRoutes() {
+  var routeMap = {};
+  allRoutes.forEach(function(r) {
+    var key = (r.from_key || "") + " → " + (r.to_key || "");
+    if (!routeMap[key]) routeMap[key] = { count: 0, pax: 0 };
+    routeMap[key].count++;
+    var rPax = allBookings.filter(function(b) { return b.route_id === r.id; }).reduce(function(s, b) { return s + (b.seats_count || 1); }, 0);
+    routeMap[key].pax += rPax;
+  });
+
+  var sorted = Object.keys(routeMap).map(function(k) { return { route: k, count: routeMap[k].count, pax: routeMap[k].pax }; })
+    .sort(function(a, b) { return b.pax - a.pax; }).slice(0, 8);
+
+  if (sorted.length === 0) {
+    document.getElementById("top-routes").innerHTML = '<p class="pa-empty">Нет данных</p>';
+    return;
+  }
+
+  var maxPax = Math.max(1, sorted[0].pax);
+  document.getElementById("top-routes").innerHTML = sorted.map(function(r) {
+    var w = Math.max(5, (r.pax / maxPax) * 100);
+    return '<div style="margin-bottom:6px">' +
+      '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">' +
+      '<strong>' + r.route + '</strong><span style="color:#64748b">' + r.count + ' рейс. / ' + r.pax + ' пасс.</span></div>' +
+      '<div style="background:#f1f5f9;border-radius:4px;height:8px;overflow:hidden">' +
+      '<div style="height:100%;width:' + w + '%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);border-radius:4px"></div></div></div>';
+  }).join("");
+}
+
+// ==================== Drivers ====================
+function renderDrivers() {
+  var driverMap = {};
+  allRoutes.forEach(function(r) {
+    var id = r.carrier_id || "unknown";
+    if (!driverMap[id]) driverMap[id] = { name: r.carrier || id, trips: 0, pax: 0 };
+    driverMap[id].trips++;
+    var rPax = allBookings.filter(function(b) { return b.route_id === r.id; }).reduce(function(s, b) { return s + (b.seats_count || 1); }, 0);
+    driverMap[id].pax += rPax;
+  });
+
+  var drivers = Object.keys(driverMap).map(function(id) { return { id: id, name: driverMap[id].name, trips: driverMap[id].trips, pax: driverMap[id].pax }; })
+    .sort(function(a, b) { return b.trips - a.trips; });
+
+  var tbody = document.getElementById("drivers-tbody");
+  if (drivers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="pa-empty">Нет водителей</td></tr>';
+    return;
+  }
+  tbody.innerHTML = drivers.map(function(d) {
+    return '<tr>' +
+      '<td><strong>' + d.name + '</strong><br><span style="font-size:9px;color:#9ca3af">' + d.id + '</span></td>' +
+      '<td>' + d.trips + '</td>' +
+      '<td>' + d.pax + '</td>' +
+      '<td><button class="pa-btn pa-btn-red" onclick="deleteDriverRoutes(\'' + d.id + '\')">Удалить рейсы</button></td>' +
+      '</tr>';
+  }).join("");
+}
+
+async function deleteDriverRoutes(carrierId) {
+  if (!confirm("Удалить ВСЕ рейсы перевозчика " + carrierId + "?")) return;
+  var ids = allRoutes.filter(function(r) { return r.carrier_id === carrierId; }).map(function(r) { return r.id; });
+  for (var i = 0; i < ids.length; i++) {
+    await sb.from("bookings").delete().eq("route_id", ids[i]);
+    await sb.from("routes").delete().eq("id", ids[i]);
+  }
+  await loadAll();
+}
+
+// ==================== Routes ====================
+function renderRoutes() {
+  var tbody = document.getElementById("routes-tbody");
+  if (allRoutes.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="pa-empty">Нет рейсов</td></tr>';
+    return;
+  }
+  var bookMap = {};
+  allBookings.forEach(function(b) { bookMap[b.route_id] = (bookMap[b.route_id] || 0) + (b.seats_count || 1); });
+
+  tbody.innerHTML = allRoutes.slice(0, 100).map(function(r) {
+    var booked = bookMap[r.id] || 0;
+    var total = r.total_seats || r.seats || 20;
+    var free = total - booked;
+    var color = free <= 0 ? '#dc2626' : free <= 3 ? '#d97706' : '#16a34a';
+    return '<tr>' +
+      '<td><strong>' + (r.from_key || "") + '</strong> → <strong>' + (r.to_key || "") + '</strong></td>' +
+      '<td>' + (r.trip_date || "—") + '</td>' +
+      '<td>' + (r.carrier || "—") + '</td>' +
+      '<td><span style="color:' + color + ';font-weight:700">' + free + '</span> / ' + total + '</td>' +
+      '<td><button class="pa-btn pa-btn-red" onclick="deleteRoute(\'' + r.id + '\')">✕</button></td>' +
+      '</tr>';
+  }).join("");
+}
+
+async function deleteRoute(id) {
+  if (!confirm("Удалить этот рейс и все его бронирования?")) return;
+  await sb.from("bookings").delete().eq("route_id", id);
+  await sb.from("routes").delete().eq("id", id);
+  await loadAll();
+}
+
+// ==================== Passengers ====================
+function renderPassengers() {
+  var tbody = document.getElementById("passengers-tbody");
+  if (allBookings.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="pa-empty">Нет бронирований</td></tr>';
+    return;
+  }
+  var routeMap = {};
+  allRoutes.forEach(function(r) { routeMap[r.id] = (r.from_key || "") + " → " + (r.to_key || ""); });
+
+  tbody.innerHTML = allBookings.slice(0, 100).map(function(b) {
+    return '<tr>' +
+      '<td><strong>' + (b.passenger_name || "—") + '</strong></td>' +
+      '<td>' + (b.phone || "—") + '</td>' +
+      '<td style="font-size:10px">' + (routeMap[b.route_id] || b.route_id) + '</td>' +
+      '<td>' + (b.seats_count || 1) + '</td>' +
+      '<td><button class="pa-btn pa-btn-red" onclick="deleteBooking(\'' + b.id + '\')">✕</button></td>' +
+      '</tr>';
+  }).join("");
+}
+
+async function deleteBooking(id) {
+  if (!confirm("Удалить это бронирование?")) return;
+  await sb.from("bookings").delete().eq("id", id);
+  await loadAll();
+}
+
+// ==================== Messages ====================
+function renderMessages() {
+  var list = document.getElementById("messages-list");
+  if (allMessages.length === 0) {
+    list.innerHTML = '<p class="pa-empty">Нет обращений</p>';
+    return;
+  }
+  var typeColors = { review: "#eff6ff;color:#2563eb", complaint: "#fef2f2;color:#dc2626", idea: "#f0fdf4;color:#16a34a" };
+  var typeNames = { review: "Отзыв", complaint: "Жалоба", idea: "Идея" };
+
+  list.innerHTML = allMessages.map(function(m) {
+    var tc = typeColors[m.type] || typeColors.review;
+    var tn = typeNames[m.type] || m.type;
+    var date = m.created_at ? new Date(m.created_at).toLocaleDateString("ru") : "";
+    return '<div class="pa-msg">' +
+      '<div class="pa-msg-header">' +
+      '<div><span class="pa-msg-name">' + (m.name || "Аноним") + '</span>' +
+      (m.email ? ' <span style="font-size:9px;color:#9ca3af">' + m.email + '</span>' : '') + '</div>' +
+      '<div style="display:flex;align-items:center;gap:6px">' +
+      '<span class="pa-msg-type" style="background:' + tc + '">' + tn + '</span>' +
+      '<span class="pa-msg-date">' + date + '</span>' +
+      '<button class="pa-btn pa-btn-red" style="padding:2px 6px" onclick="deleteMessage(\'' + m.id + '\')">✕</button></div></div>' +
+      (m.route ? '<div style="font-size:9px;color:#9ca3af;margin-bottom:2px">Рейс: ' + m.route + '</div>' : '') +
+      '<div class="pa-msg-text">' + (m.message || "") + '</div></div>';
+  }).join("");
+}
+
+async function deleteMessage(id) {
+  await sb.from("complaints").delete().eq("id", id);
+  allMessages = allMessages.filter(function(m) { return m.id !== id; });
+  renderMessages();
+}
+
+// ==================== Init ====================
+loadAll();
+</script>
+</body>
+</html>

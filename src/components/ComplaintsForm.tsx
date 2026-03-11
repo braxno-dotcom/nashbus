@@ -18,20 +18,24 @@ export default function ComplaintsForm({ dict }: { dict: Dict }) {
   const [route, setRoute] = useState("");
   const [message, setMessage] = useState("");
   const [history, setHistory] = useState<Complaint[]>([]);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    setHistory(getComplaints().slice(0, 5));
+    getComplaints().then((list) => setHistory(list.slice(0, 5)));
   }, []);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    addComplaint({ name, email, type, route, message });
+    setSending(true);
+    await addComplaint({ name, email, type, route, message });
     alert(dict.complaints.success);
     setName("");
     setEmail("");
     setRoute("");
     setMessage("");
-    setHistory(getComplaints().slice(0, 5));
+    const list = await getComplaints();
+    setHistory(list.slice(0, 5));
+    setSending(false);
   }
 
   const typeLabels = {
@@ -100,9 +104,10 @@ export default function ComplaintsForm({ dict }: { dict: Dict }) {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-blue-700 active:scale-[0.98] transition-all"
+            disabled={sending}
+            className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-50"
           >
-            {dict.complaints.submit}
+            {sending ? "..." : dict.complaints.submit}
           </button>
         </form>
       </div>

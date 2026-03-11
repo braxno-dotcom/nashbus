@@ -8,22 +8,63 @@ export interface Complaint {
   createdAt: string;
 }
 
-const STORAGE_KEY = "nashbus_complaints";
+const SUPABASE_URL = "https://wxwjsyhrykiexkkoyhoz.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4d2pzeWhyeWtpZXhra295aG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjEwNDcsImV4cCI6MjA4ODczNzA0N30.53Ww3hcMl6xirqELFvgZGe-k_Oxfjx6xyAaEAkcOjJ4";
 
-export function getComplaints(): Complaint[] {
-  if (typeof window === "undefined") return [];
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
+const headers = {
+  "apikey": SUPABASE_KEY,
+  "Authorization": `Bearer ${SUPABASE_KEY}`,
+  "Content-Type": "application/json",
+  "Prefer": "return=representation",
+};
+
+export async function getComplaints(): Promise<Complaint[]> {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/complaints?select=*&order=created_at.desc&limit=10`,
+      { headers }
+    );
+    if (!res.ok) return [];
+    const rows = await res.json();
+    return rows.map((r: Record<string, unknown>) => ({
+      id: String(r.id),
+      name: r.name || "",
+      email: r.email || "",
+      type: r.type || "review",
+      route: r.route || "",
+      message: r.message || "",
+      createdAt: String(r.created_at || ""),
+    }));
+  } catch {
+    return [];
+  }
 }
 
-export function addComplaint(c: Omit<Complaint, "id" | "createdAt">): Complaint {
-  const complaints = getComplaints();
-  const entry: Complaint = {
-    ...c,
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString(),
-  };
-  complaints.unshift(entry);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(complaints));
-  return entry;
+export async function addComplaint(c: Omit<Complaint, "id" | "createdAt">): Promise<Complaint | null> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/complaints`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        name: c.name,
+        email: c.email,
+        type: c.type,
+        route: c.route,
+        message: c.message,
+      }),
+    });
+    if (!res.ok) return null;
+    const [row] = await res.json();
+    return {
+      id: String(row.id),
+      name: row.name,
+      email: row.email,
+      type: row.type,
+      route: row.route,
+      message: row.message,
+      createdAt: row.created_at,
+    };
+  } catch {
+    return null;
+  }
 }

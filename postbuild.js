@@ -23,6 +23,7 @@ console.log("postbuild: replaced out/index.html with meta redirect");
 // 2. Copy legacy files (admin, scripts, styles) into out/
 const filesToCopy = [
   "admin.html",
+  "platform.html",
   "script.js",
   "style.css",
   "supabase-config.js",
