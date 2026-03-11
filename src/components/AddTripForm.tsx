@@ -57,6 +57,12 @@ export default function AddTripForm({ dict }: { dict: Dict }) {
   const [logoUrl, setLogoUrl] = useState("");
   const [logoPreview, setLogoPreview] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [address, setAddress] = useState("");
+  const [geoStatus, setGeoStatus] = useState("");
+  const [geoOk, setGeoOk] = useState(false);
+  const [lat, setLat] = useState("");
+  const [lng, setLng] = useState("");
+  const [geoLoading, setGeoLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function addWaypoint() {
@@ -71,6 +77,29 @@ export default function AddTripForm({ dict }: { dict: Dict }) {
 
   function removeWaypoint(index: number) {
     setWaypoints(waypoints.filter((_, i) => i !== index));
+  }
+
+  async function geocodeAddress() {
+    if (!address.trim()) return;
+    setGeoLoading(true);
+    setGeoStatus("");
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        setLat(parseFloat(data[0].lat).toFixed(4));
+        setLng(parseFloat(data[0].lon).toFixed(4));
+        setGeoOk(true);
+        setGeoStatus(data[0].display_name.substring(0, 60));
+      } else {
+        setGeoOk(false);
+        setGeoStatus(driverDict.geoNotFound || "Address not found");
+      }
+    } catch {
+      setGeoOk(false);
+      setGeoStatus("Error");
+    }
+    setGeoLoading(false);
   }
 
   async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -216,7 +245,31 @@ export default function AddTripForm({ dict }: { dict: Dict }) {
                 <input type="number" placeholder={dict.driver.seats} min="1" max="60" required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
                 <input type="number" value={totalSeats} onChange={(e) => setMaxSeats(e.target.value)} placeholder={driverDict.totalSeats || "Max"} min="1" max="60" className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
               </div>
-              <input type="url" placeholder={dict.driver.pickupMap} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+              {/* Pickup address with geocoding */}
+              <div>
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder={driverDict.pickupAddress || "Pickup address"}
+                    className="flex-1 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={geocodeAddress}
+                    disabled={geoLoading}
+                    className="px-3 py-2 rounded-lg bg-blue-600 text-white text-[10px] font-bold hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-50 shrink-0"
+                  >
+                    {geoLoading ? "..." : (driverDict.geoFind || "Find")}
+                  </button>
+                </div>
+                {geoStatus && (
+                  <p className={`text-[9px] mt-0.5 ${geoOk ? "text-green-600" : "text-red-500"}`}>
+                    {geoOk ? "✓ " : ""}{geoStatus}
+                  </p>
+                )}
+              </div>
               <input type="tel" placeholder={dict.driver.phone} required className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
               <button type="submit" className="w-full bg-yellow-400 text-gray-900 font-bold py-2.5 rounded-lg text-xs hover:bg-yellow-300 active:scale-[0.98] transition-all">
                 {dict.driver.submit}

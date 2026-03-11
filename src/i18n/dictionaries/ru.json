@@ -72,7 +72,10 @@
     "passengerSeats": "Мест",
     "passengers": "Пассажиры",
     "noPassengers": "Пассажиров пока нет",
-    "totalTrips": "Рейсов создано"
+    "totalTrips": "Рейсов создано",
+    "pickupAddress": "Точка сбора (адрес)",
+    "geoFind": "📍 Найти",
+    "geoNotFound": "Адрес не найден"
   },
   "clients": {
     "title": "Мои клиенты",

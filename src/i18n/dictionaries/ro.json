@@ -72,7 +72,10 @@
     "passengerSeats": "Locuri",
     "passengers": "Pasageri",
     "noPassengers": "Nu sunt pasageri încă",
-    "totalTrips": "Curse create"
+    "totalTrips": "Curse create",
+    "pickupAddress": "Punct de colectare (adresă)",
+    "geoFind": "📍 Caută",
+    "geoNotFound": "Adresa nu a fost găsită"
   },
   "clients": {
     "title": "Clienții mei",
