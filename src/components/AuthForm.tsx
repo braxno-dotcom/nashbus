@@ -23,8 +23,10 @@ export default function AuthForm({ dict, onLogin, sessionExpired = false }: { di
       if (result.ok) {
         setSuccess(dict.auth.registered);
         setMode("login");
+        setPhone(phone);
+        setPassword("");
       } else {
-        setError(dict.auth.notFound);
+        setError(result.error === "exists" ? dict.auth.hasAccount : "Error");
       }
     } else {
       const result = login(phone, password);
