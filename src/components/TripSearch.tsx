@@ -31,7 +31,7 @@ interface RouteRow {
   duration: string;
   price: string;
   seats: number;
-  max_seats: number;
+  total_seats: number;
   parcels: boolean;
   pickup_lat: number;
   pickup_lng: number;
@@ -57,7 +57,7 @@ function rowToTrip(row: RouteRow, bookedSeats: number): Trip {
     duration: row.duration || "",
     price: row.price || "",
     seats: row.seats || 0,
-    maxSeats: row.max_seats || 20,
+    maxSeats: row.total_seats || 20,
     bookedSeats,
     parcels: row.parcels || false,
     pickupLat: row.pickup_lat || 0,

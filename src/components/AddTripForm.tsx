@@ -14,7 +14,7 @@ export interface ActiveTrip {
   busNumber: string;
   waypoints: string[];
   logoUrl?: string;
-  maxSeats?: number;
+  totalSeats?: number;
 }
 
 const ACTIVE_TRIP_KEY = "nashbus_active_trip";
@@ -52,7 +52,7 @@ export default function AddTripForm({ dict }: { dict: Dict }) {
   const [to, setTo] = useState("");
   const [date, setDate] = useState("");
   const [busNumber, setBusNumber] = useState("");
-  const [maxSeats, setMaxSeats] = useState("20");
+  const [totalSeats, setMaxSeats] = useState("20");
   const [waypoints, setWaypoints] = useState<string[]>([]);
   const [logoUrl, setLogoUrl] = useState("");
   const [logoPreview, setLogoPreview] = useState("");
@@ -99,7 +99,7 @@ export default function AddTripForm({ dict }: { dict: Dict }) {
       from, to, date, busNumber,
       waypoints: filteredWaypoints,
       logoUrl: logoUrl || undefined,
-      maxSeats: parseInt(maxSeats) || 20,
+      totalSeats: parseInt(totalSeats) || 20,
     };
     localStorage.setItem(ACTIVE_TRIP_KEY, JSON.stringify(trip));
     alert(dict.driver.success);
@@ -214,7 +214,7 @@ export default function AddTripForm({ dict }: { dict: Dict }) {
               <div className="grid grid-cols-3 gap-2">
                 <input type="text" value={busNumber} onChange={(e) => setBusNumber(e.target.value)} placeholder={dict.clients.busNumber} className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
                 <input type="number" placeholder={dict.driver.seats} min="1" max="60" required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
-                <input type="number" value={maxSeats} onChange={(e) => setMaxSeats(e.target.value)} placeholder={driverDict.maxSeats || "Max"} min="1" max="60" className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                <input type="number" value={totalSeats} onChange={(e) => setMaxSeats(e.target.value)} placeholder={driverDict.totalSeats || "Max"} min="1" max="60" className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
               </div>
               <input type="url" placeholder={dict.driver.pickupMap} className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
               <input type="tel" placeholder={dict.driver.phone} required className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />

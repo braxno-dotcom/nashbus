@@ -63,7 +63,7 @@
     "logoUpload": "Завантажити фото",
     "logoUploading": "Завантаження...",
     "logoDelete": "Видалити фото",
-    "maxSeats": "Макс. місць",
+    "totalSeats": "Всього місць",
     "addPassenger": "Додати пасажира",
     "passengerName": "Ім'я пасажира",
     "passengerPhone": "Телефон",
@@ -71,7 +71,8 @@
     "passengerTo": "Куди",
     "passengerSeats": "Місць",
     "passengers": "Пасажири",
-    "noPassengers": "Пасажирів поки немає"
+    "noPassengers": "Пасажирів поки немає",
+    "totalTrips": "Рейсів створено"
   },
   "clients": {
     "title": "Мої клієнти",

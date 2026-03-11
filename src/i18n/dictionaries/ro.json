@@ -63,7 +63,7 @@
     "logoUpload": "Încarcă foto",
     "logoUploading": "Se încarcă...",
     "logoDelete": "Șterge foto",
-    "maxSeats": "Locuri max.",
+    "totalSeats": "Locuri totale",
     "addPassenger": "Adaugă pasager",
     "passengerName": "Numele pasagerului",
     "passengerPhone": "Telefon",
@@ -71,7 +71,8 @@
     "passengerTo": "Încotro",
     "passengerSeats": "Locuri",
     "passengers": "Pasageri",
-    "noPassengers": "Nu sunt pasageri încă"
+    "noPassengers": "Nu sunt pasageri încă",
+    "totalTrips": "Curse create"
   },
   "clients": {
     "title": "Clienții mei",

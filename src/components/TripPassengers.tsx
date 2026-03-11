@@ -10,10 +10,10 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 interface Booking {
   id: string;
   route_id: string;
-  name: string;
+  passenger_name: string;
   phone: string;
-  from_city: string;
-  to_city: string;
+  pickup_point: string;
+  dropoff_point: string;
   seats_count: number;
 }
 
@@ -23,7 +23,7 @@ interface RouteInfo {
   from_key: string;
   to_key: string;
   trip_date: string;
-  max_seats: number;
+  total_seats: number;
 }
 
 async function sbFetch(path: string, options?: RequestInit) {
@@ -48,8 +48,8 @@ export default function TripPassengers({ dict, driverId }: { dict: Dict; driverI
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [fromCity, setFromCity] = useState("");
-  const [toCity, setToCity] = useState("");
+  const [pickup, setPickup] = useState("");
+  const [dropoff, setDropoff] = useState("");
   const [seatsCount, setSeatsCount] = useState("1");
   const [loading, setLoading] = useState(false);
 
@@ -58,7 +58,7 @@ export default function TripPassengers({ dict, driverId }: { dict: Dict; driverI
   // Load driver's routes
   useEffect(() => {
     async function load() {
-      const data = await sbFetch(`routes?carrier_id=eq.${driverId}&select=id,carrier,from_key,to_key,trip_date,max_seats&order=trip_date.desc`);
+      const data = await sbFetch(`routes?carrier_id=eq.${driverId}&select=id,carrier,from_key,to_key,trip_date,total_seats&order=trip_date.desc`);
       if (data) setRoutes(data);
     }
     if (driverId) load();
@@ -78,8 +78,8 @@ export default function TripPassengers({ dict, driverId }: { dict: Dict; driverI
 
   const currentRoute = routes.find(r => r.id === selectedRoute);
   const totalBooked = bookings.reduce((sum, b) => sum + b.seats_count, 0);
-  const maxSeats = currentRoute?.max_seats || 20;
-  const seatsLeft = maxSeats - totalBooked;
+  const totalSeats = currentRoute?.total_seats || 20;
+  const seatsLeft = totalSeats - totalBooked;
 
   async function handleAddPassenger(e: React.FormEvent) {
     e.preventDefault();
@@ -87,10 +87,10 @@ export default function TripPassengers({ dict, driverId }: { dict: Dict; driverI
 
     const booking = {
       route_id: selectedRoute,
-      name,
+      passenger_name: name,
       phone,
-      from_city: fromCity,
-      to_city: toCity,
+      pickup_point: pickup,
+      dropoff_point: dropoff,
       seats_count: parseInt(seatsCount) || 1,
     };
 
@@ -103,8 +103,8 @@ export default function TripPassengers({ dict, driverId }: { dict: Dict; driverI
       setBookings([...bookings, data[0]]);
       setName("");
       setPhone("");
-      setFromCity("");
-      setToCity("");
+      setPickup("");
+      setDropoff("");
       setSeatsCount("1");
       setShowForm(false);
     }
@@ -119,11 +119,19 @@ export default function TripPassengers({ dict, driverId }: { dict: Dict; driverI
 
   return (
     <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-3">
-      <div className="flex items-center gap-1.5 mb-2">
-        <svg className="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-        <h3 className="text-xs font-bold text-gray-800">{driverDict.passengers || "Passengers"}</h3>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1.5">
+          <svg className="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <h3 className="text-xs font-bold text-gray-800">{driverDict.passengers || "Passengers"}</h3>
+        </div>
+        {/* Trip counter for subscription control */}
+        {routes.length > 0 && (
+          <span className="text-[10px] bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded">
+            {driverDict.totalTrips || "Trips"}: {routes.length}
+          </span>
+        )}
       </div>
 
       {/* Route selector */}
@@ -152,7 +160,7 @@ export default function TripPassengers({ dict, driverId }: { dict: Dict; driverI
               <span className="text-[10px] text-gray-600">
                 {(dict.trips as Record<string, string>).seatsLeft
                   ?.replace("{left}", String(seatsLeft))
-                  .replace("{total}", String(maxSeats)) || `${seatsLeft}/${maxSeats}`}
+                  .replace("{total}", String(totalSeats)) || `${seatsLeft}/${totalSeats}`}
               </span>
             ) : (
               <span className="text-[10px] text-red-600 font-bold">
@@ -192,16 +200,16 @@ export default function TripPassengers({ dict, driverId }: { dict: Dict; driverI
               <div className="grid grid-cols-3 gap-2">
                 <input
                   type="text"
-                  value={fromCity}
-                  onChange={(e) => setFromCity(e.target.value)}
-                  placeholder={driverDict.passengerFrom || "From"}
+                  value={pickup}
+                  onChange={(e) => setPickup(e.target.value)}
+                  placeholder={driverDict.passengerFrom || "Pickup"}
                   className="px-2 py-2 rounded-lg bg-white border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
                 />
                 <input
                   type="text"
-                  value={toCity}
-                  onChange={(e) => setToCity(e.target.value)}
-                  placeholder={driverDict.passengerTo || "To"}
+                  value={dropoff}
+                  onChange={(e) => setDropoff(e.target.value)}
+                  placeholder={driverDict.passengerTo || "Dropoff"}
                   className="px-2 py-2 rounded-lg bg-white border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
                 />
                 <input
@@ -234,13 +242,13 @@ export default function TripPassengers({ dict, driverId }: { dict: Dict; driverI
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <span className="text-[9px] text-gray-400 shrink-0">{i + 1}.</span>
-                      <span className="text-xs font-semibold text-gray-800 truncate">{b.name}</span>
+                      <span className="text-xs font-semibold text-gray-800 truncate">{b.passenger_name}</span>
                       <span className="text-[10px] text-gray-400">{b.seats_count > 1 ? `x${b.seats_count}` : ""}</span>
                     </div>
                     <div className="flex items-center gap-1 ml-4">
                       <span className="text-[10px] text-gray-500">{b.phone}</span>
-                      {b.from_city && b.to_city && (
-                        <span className="text-[9px] text-gray-400">({b.from_city} → {b.to_city})</span>
+                      {b.pickup_point && b.dropoff_point && (
+                        <span className="text-[9px] text-gray-400">({b.pickup_point} → {b.dropoff_point})</span>
                       )}
                     </div>
                   </div>
@@ -255,7 +263,7 @@ export default function TripPassengers({ dict, driverId }: { dict: Dict; driverI
                 </div>
               ))}
               <div className="text-right text-[10px] text-gray-500 pt-1">
-                {totalBooked} / {maxSeats}
+                {totalBooked} / {totalSeats}
               </div>
             </div>
           )}
