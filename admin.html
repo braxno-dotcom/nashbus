@@ -23,8 +23,8 @@
     .btn-edit:hover { background: #1d4ed8; }
     .btn-del { background: #fef2f2; color: #dc2626; font-size: 10px; font-weight: 600; padding: 4px 8px; border-radius: 4px; border: none; }
     .btn-del:hover { background: #fee2e2; }
-    .btn-reset-demo { background: #f1f5f9; color: #64748b; font-size: 10px; font-weight: 500; padding: 6px 12px; border-radius: 6px; border: none; margin-left: 8px; }
-    .btn-reset-demo:hover { background: #e2e8f0; }
+    .btn-cancel { background: #f1f5f9; color: #64748b; font-size: 10px; font-weight: 500; padding: 6px 12px; border-radius: 6px; border: none; margin-left: 8px; }
+    .btn-cancel:hover { background: #e2e8f0; }
     .form-section { margin-bottom: 16px; }
     .form-section label { display: block; font-size: 10px; font-weight: 600; color: #64748b; margin-bottom: 2px; }
     .wp-input-row { display: flex; gap: 4px; margin-bottom: 4px; }
@@ -214,7 +214,7 @@
         </div>
         <div style="display:flex;gap:8px">
           <button type="submit" class="btn-primary" data-i18n="f.save">Сохранить</button>
-          <button type="button" onclick="cancelEdit()" class="btn-reset-demo" style="flex:none;padding:8px 16px" data-i18n="f.cancel">Отмена</button>
+          <button type="button" onclick="cancelEdit()" class="btn-cancel" style="flex:none;padding:8px 16px" data-i18n="f.cancel">Отмена</button>
         </div>
       </form>
     </div>
@@ -225,7 +225,6 @@
         <h3 data-i18n="allTrips">Все рейсы</h3>
         <div style="display:flex;gap:6px">
           <button onclick="openStatsModal()" class="btn-edit" style="font-size:10px">📊 <span data-i18n="statsBtn">Статистика</span></button>
-          <button onclick="resetToDemo()" class="btn-reset-demo" data-i18n="resetDemo">Сбросить на демо-данные</button>
         </div>
       </div>
       <div style="overflow-x:auto">
@@ -397,13 +396,6 @@ function applyTranslations() {
 }
 
 // ==================== Data (Supabase) ====================
-var DEFAULT_TRIPS = [
-  { carrierId: "eurotrans", carrier: "EuroTrans", fromKey: "paris", toKey: "kyiv", date: "15.03.2026", departure: "06:00", arrival: "14:00+1", duration: "32h", price: "€95", seats: 14, parcels: true, pickupLat: 48.8566, pickupLng: 2.3522, phone: "+380501234567", waypoints: ["strasbourg","nuremberg","prague","krakow","lviv","ternopil","zhytomyr"] },
-  { carrierId: "berlinlvivbus", carrier: "BerlinLvivBus", fromKey: "berlin", toKey: "lviv", date: "16.03.2026", departure: "18:00", arrival: "16:00+1", duration: "22h", price: "€75", seats: 10, parcels: true, pickupLat: 52.52, pickupLng: 13.405, phone: "+380671234567", waypoints: ["wroclaw","katowice","krakow","rzeszow","ivanofrankivsk"] },
-  { carrierId: "warszawaodesa", carrier: "WarszawaOdesa", fromKey: "warsaw", toKey: "odesa", date: "17.03.2026", departure: "07:00", arrival: "08:00+1", duration: "25h", price: "€80", seats: 8, parcels: true, pickupLat: 52.2297, pickupLng: 21.0122, phone: "+380931234567", waypoints: ["lublin","lviv","ternopil","vinnytsya","kyiv","mykolaiv"] },
-  { carrierId: "moldovaexpress", carrier: "MoldovaExpress", fromKey: "chisinau", toKey: "chernivtsi", date: "18.03.2026", departure: "06:30", arrival: "14:00", duration: "7.5h", price: "€30", seats: 6, parcels: false, pickupLat: 47.0105, pickupLng: 28.8638, phone: "+373691234567", waypoints: ["tiraspol","odesa","iasi","suceava","siret"] }
-];
-
 var trips = [];
 var bookingCounts = {};
 
@@ -545,11 +537,6 @@ function geocodeAddress() {
 function getAllCities() {
   var set = {};
   trips.forEach(function(t) {
-    set[t.fromKey] = 1;
-    set[t.toKey] = 1;
-    (t.waypoints || []).forEach(function(w) { set[w] = 1; });
-  });
-  DEFAULT_TRIPS.forEach(function(t) {
     set[t.fromKey] = 1;
     set[t.toKey] = 1;
     (t.waypoints || []).forEach(function(w) { set[w] = 1; });
@@ -716,12 +703,6 @@ function cancelEdit() {
   document.getElementById("f-logo").value = "";
   document.getElementById("logo-preview").innerHTML = "";
   document.getElementById("upload-status").textContent = "";
-}
-
-async function resetToDemo() {
-  if (!confirm(at("confirmReset"))) return;
-  trips = await sbResetToDemo(DEFAULT_TRIPS);
-  renderTable();
 }
 
 // ==================== Stats Modal ====================

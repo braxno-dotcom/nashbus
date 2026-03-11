@@ -98,14 +98,3 @@ async function sbLoadBookingCounts() {
   return map;
 }
 
-async function sbResetToDemo(demoTrips) {
-  await sb.from("routes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-  var rows = demoTrips.map(function(t) {
-    var r = tripToDb(t);
-    delete r.id;
-    return r;
-  });
-  var { data, error } = await sb.from("routes").insert(rows).select();
-  if (error) { console.error("Supabase reset error:", error); return []; }
-  return data.map(dbToTrip);
-}
