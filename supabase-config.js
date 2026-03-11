@@ -17,6 +17,7 @@ function dbToTrip(row) {
     duration: row.duration,
     price: row.price,
     seats: row.seats,
+    totalSeats: row.total_seats || row.seats || 20,
     parcels: row.parcels,
     pickupLat: row.pickup_lat,
     pickupLng: row.pickup_lng,
@@ -44,6 +45,7 @@ function tripToDb(trip) {
     duration: trip.duration,
     price: trip.price,
     seats: trip.seats,
+    total_seats: trip.totalSeats || trip.seats || 20,
     parcels: trip.parcels,
     pickup_lat: trip.pickupLat,
     pickup_lng: trip.pickupLng,
@@ -84,6 +86,16 @@ async function sbDeleteTrip(id) {
   var { error } = await sb.from("routes").delete().eq("id", id);
   if (error) { console.error("Supabase delete error:", error); return false; }
   return true;
+}
+
+async function sbLoadBookingCounts() {
+  var { data, error } = await sb.from("bookings").select("route_id,seats_count");
+  if (error) { console.error("Supabase bookings error:", error); return {}; }
+  var map = {};
+  (data || []).forEach(function(b) {
+    map[b.route_id] = (map[b.route_id] || 0) + b.seats_count;
+  });
+  return map;
 }
 
 async function sbResetToDemo(demoTrips) {

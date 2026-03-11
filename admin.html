@@ -144,10 +144,13 @@
             </div>
           </div>
         </div>
-        <div class="grid-3">
+        <div class="grid-2">
           <div class="form-section"><label data-i18n="f.duration">В пути</label><input type="text" id="f-duration" placeholder="32h" required></div>
           <div class="form-section"><label data-i18n="f.price">Цена</label><input type="text" id="f-price" placeholder="€95" required></div>
+        </div>
+        <div class="grid-2">
           <div class="form-section"><label data-i18n="f.seats">Мест</label><input type="number" id="f-seats" placeholder="14" min="1" required></div>
+          <div class="form-section"><label data-i18n="f.totalSeats">Всего мест</label><input type="number" id="f-total-seats" placeholder="20" min="1"></div>
         </div>
         <div class="form-section">
           <label data-i18n="f.address">Точка сбора (адрес)</label>
@@ -253,12 +256,13 @@ var ADMIN_DICT = {
     stat: { trips: "Рейсів", seats: "Місць всього", parcels: "З посилками" },
     f: { carrier: "Перевізник", carrierId: "ID компанії", phone: "Телефон", from: "Звідки", to: "Куди",
       waypoints: "Проміжні зупинки (через кому)", date: "Дата", departure: "Відправлення", arrival: "Прибуття",
-      duration: "У дорозі", price: "Ціна", seats: "Місць", address: "Точка збору (адреса)",
+      duration: "У дорозі", price: "Ціна", seats: "Місць", totalSeats: "Всього місць", address: "Точка збору (адреса)",
       addressHint: "Варшава, центральний вокзал", find: "📍 Знайти",
       lat: "Широта", lng: "Довгота", logo: "Логотип / фото автобуса", chooseLogo: "Обрати файл", removeLogo: "Видалити", amenities: "Зручності",
       power: "Розетки", ac: "Кондиціонер", toilet: "Туалет", luggage: "Багаж", pets: "Тварини",
       parcels: "Приймає посилки", save: "Зберегти", cancel: "Скасувати" },
-    th: { carrier: "Перевізник", route: "Маршрут", stops: "Зупинки", date: "Дата", price: "Ціна", seats: "Місць", actions: "Дії" }
+    th: { carrier: "Перевізник", route: "Маршрут", stops: "Зупинки", date: "Дата", price: "Ціна", seats: "Місця", actions: "Дії" },
+    booked: "Зайнято", free: "Вільно", of: "з"
   },
   ru: {
     backToSite: "← На сайт",
@@ -274,12 +278,13 @@ var ADMIN_DICT = {
     stat: { trips: "Рейсов", seats: "Мест всего", parcels: "С посылками" },
     f: { carrier: "Перевозчик", carrierId: "ID компании", phone: "Телефон", from: "Откуда", to: "Куда",
       waypoints: "Промежуточные остановки (через запятую)", date: "Дата", departure: "Отправление", arrival: "Прибытие",
-      duration: "В пути", price: "Цена", seats: "Мест", address: "Точка сбора (адрес)",
+      duration: "В пути", price: "Цена", seats: "Мест", totalSeats: "Всего мест", address: "Точка сбора (адрес)",
       addressHint: "Варшава, центральный вокзал", find: "📍 Найти",
       lat: "Широта", lng: "Долгота", logo: "Логотип / фото автобуса", chooseLogo: "Выбрать файл", removeLogo: "Удалить", amenities: "Удобства",
       power: "Розетки", ac: "Кондиционер", toilet: "Туалет", luggage: "Багаж", pets: "Животные",
       parcels: "Принимает посылки", save: "Сохранить", cancel: "Отмена" },
-    th: { carrier: "Перевозчик", route: "Маршрут", stops: "Остановки", date: "Дата", price: "Цена", seats: "Мест", actions: "Действия" }
+    th: { carrier: "Перевозчик", route: "Маршрут", stops: "Остановки", date: "Дата", price: "Цена", seats: "Места", actions: "Действия" },
+    booked: "Занято", free: "Свободно", of: "из"
   },
   ro: {
     backToSite: "← Pe site",
@@ -295,12 +300,13 @@ var ADMIN_DICT = {
     stat: { trips: "Curse", seats: "Locuri total", parcels: "Cu colete" },
     f: { carrier: "Transportator", carrierId: "ID companie", phone: "Telefon", from: "De unde", to: "Unde",
       waypoints: "Opriri intermediare (prin virgulă)", date: "Data", departure: "Plecare", arrival: "Sosire",
-      duration: "Durată", price: "Preț", seats: "Locuri", address: "Punct de colectare (adresă)",
+      duration: "Durată", price: "Preț", seats: "Locuri", totalSeats: "Locuri total", address: "Punct de colectare (adresă)",
       addressHint: "Varșovia, gara centrală", find: "📍 Caută",
       lat: "Latitudine", lng: "Longitudine", logo: "Logo / foto autobuz", chooseLogo: "Alege fișier", removeLogo: "Șterge", amenities: "Facilități",
       power: "Prize", ac: "Aer condiționat", toilet: "Toaletă", luggage: "Bagaj", pets: "Animale",
       parcels: "Acceptă colete", save: "Salvează", cancel: "Anulare" },
-    th: { carrier: "Transportator", route: "Rută", stops: "Opriri", date: "Data", price: "Preț", seats: "Locuri", actions: "Acțiuni" }
+    th: { carrier: "Transportator", route: "Rută", stops: "Opriri", date: "Data", price: "Preț", seats: "Locuri", actions: "Acțiuni" },
+    booked: "Ocupate", free: "Libere", of: "din"
   }
 };
 
@@ -343,19 +349,26 @@ var DEFAULT_TRIPS = [
 ];
 
 var trips = [];
+var bookingCounts = {};
 
 // ==================== Render ====================
 function renderTable() {
   var tbody = document.getElementById("trips-tbody");
   tbody.innerHTML = trips.map(function(t) {
     var wps = (t.waypoints || []).map(function(w) { return '<span class="wp-tag">' + w + '</span>'; }).join("");
+    var booked = bookingCounts[t.id] || 0;
+    var total = t.totalSeats || t.seats || 20;
+    var free = total - booked;
+    var seatColor = free <= 0 ? '#dc2626' : free <= 3 ? '#d97706' : '#16a34a';
+    var seatHtml = '<span style="font-weight:700;color:' + seatColor + '">' + free + '</span> ' + at("of") + ' ' + total;
+    if (booked > 0) seatHtml += '<br><span style="font-size:9px;color:#9ca3af">' + at("booked") + ': ' + booked + '</span>';
     return '<tr>' +
       '<td data-label="' + at("th.carrier") + '">' + t.carrier + '<br><span style="color:#9ca3af;font-size:9px">' + (t.carrierId || '—') + '</span></td>' +
       '<td data-label="' + at("th.route") + '"><strong>' + t.fromKey + '</strong> → <strong>' + t.toKey + '</strong></td>' +
       '<td data-label="' + at("th.stops") + '"><div class="wp-tags">' + (wps || '—') + '</div></td>' +
       '<td data-label="' + at("th.date") + '">' + t.date + '<br><span style="color:#9ca3af;font-size:9px">' + t.departure + ' → ' + t.arrival + '</span></td>' +
       '<td data-label="' + at("th.price") + '"><strong>' + t.price + '</strong></td>' +
-      '<td data-label="' + at("th.seats") + '">' + t.seats + '</td>' +
+      '<td data-label="' + at("th.seats") + '">' + seatHtml + '</td>' +
       '<td data-label="' + at("th.actions") + '"><div class="actions-cell"><button class="btn-edit" onclick="editTrip(\'' + t.id + '\')">✎</button><button class="btn-del" onclick="deleteTrip(\'' + t.id + '\')">✕</button></div></td>' +
       '</tr>';
   }).join("");
@@ -364,11 +377,12 @@ function renderTable() {
 
 function renderStats() {
   var total = trips.length;
-  var totalSeats = trips.reduce(function(s, t) { return s + t.seats; }, 0);
+  var allSeats = trips.reduce(function(s, t) { return s + (t.totalSeats || t.seats || 20); }, 0);
+  var allBooked = trips.reduce(function(s, t) { return s + (bookingCounts[t.id] || 0); }, 0);
   var withParcels = trips.filter(function(t) { return t.parcels; }).length;
   document.getElementById("stats").innerHTML =
     '<div class="stat-card"><div class="stat-num">' + total + '</div><div class="stat-label">' + at("stat.trips") + '</div></div>' +
-    '<div class="stat-card"><div class="stat-num">' + totalSeats + '</div><div class="stat-label">' + at("stat.seats") + '</div></div>' +
+    '<div class="stat-card"><div class="stat-num">' + (allSeats - allBooked) + ' / ' + allSeats + '</div><div class="stat-label">' + at("stat.seats") + ' (' + at("free") + ')</div></div>' +
     '<div class="stat-card"><div class="stat-num">' + withParcels + '</div><div class="stat-label">' + at("stat.parcels") + '</div></div>';
 }
 
@@ -564,6 +578,7 @@ async function saveTrip(e) {
     duration: document.getElementById("f-duration").value,
     price: document.getElementById("f-price").value,
     seats: parseInt(document.getElementById("f-seats").value) || 1,
+    totalSeats: parseInt(document.getElementById("f-total-seats").value) || parseInt(document.getElementById("f-seats").value) || 20,
     parcels: document.getElementById("f-parcels").checked,
     pickupLat: parseFloat(document.getElementById("f-lat").value) || 0,
     pickupLng: parseFloat(document.getElementById("f-lng").value) || 0,
@@ -584,6 +599,7 @@ async function saveTrip(e) {
     await sbInsertTrip(trip);
   }
   trips = await sbLoadTrips();
+  bookingCounts = await sbLoadBookingCounts();
   cancelEdit();
   renderTable();
 }
@@ -606,6 +622,7 @@ function editTrip(id) {
   document.getElementById("f-duration").value = t.duration;
   document.getElementById("f-price").value = t.price;
   document.getElementById("f-seats").value = t.seats;
+  document.getElementById("f-total-seats").value = t.totalSeats || t.seats || 20;
   document.getElementById("f-parcels").checked = t.parcels;
   document.getElementById("f-lat").value = t.pickupLat || "";
   document.getElementById("f-lng").value = t.pickupLng || "";
@@ -628,6 +645,7 @@ async function deleteTrip(id) {
   if (!confirm(at("confirmDelete"))) return;
   await sbDeleteTrip(id);
   trips = await sbLoadTrips();
+  bookingCounts = await sbLoadBookingCounts();
   renderTable();
 }
 
@@ -656,9 +674,10 @@ setupAC("f-from", "ac-from", false);
 setupAC("f-to", "ac-to", false);
 setupAC("f-waypoints", "ac-wp", true);
 
-// Load trips from Supabase then render
-sbLoadTrips().then(function(data) {
-  trips = data;
+// Load trips and bookings from Supabase then render
+Promise.all([sbLoadTrips(), sbLoadBookingCounts()]).then(function(results) {
+  trips = results[0];
+  bookingCounts = results[1];
   renderTable();
 });
 </script>
