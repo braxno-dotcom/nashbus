@@ -3,7 +3,7 @@
     "title": "NashBus",
     "addTrip": "Adaugă cursă",
     "myClients": "Clienții mei",
-    "complaints": "Cartea de reclamații și sugestii",
+    "complaints": "Contactați adminul",
     "login": "Autentificare",
     "logout": "Deconectare",
     "driverPanel": "Panoul șoferului"
@@ -121,8 +121,8 @@
     "sessionExpired": "Sesiunea a expirat. Vă rugăm să vă conectați din nou."
   },
   "complaints": {
-    "title": "Cartea de reclamații și sugestii",
-    "subtitle": "Lăsați o recenzie, reclamație sau idee. Citim fiecare mesaj.",
+    "title": "Contactați adminul",
+    "subtitle": "Scrieți-ne — recenzie, întrebare sau sugestie. Citim fiecare mesaj.",
     "name": "Numele dvs.",
     "email": "Email (opțional)",
     "type": "Tipul mesajului",
