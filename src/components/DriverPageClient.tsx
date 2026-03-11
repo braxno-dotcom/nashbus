@@ -95,6 +95,7 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
   }
 
   function handleLogoDelete() {
+    if (!confirm(dict.driver.logoDelete + "?")) return;
     setLogoUrl("");
     localStorage.removeItem(`${LOGO_KEY}_${driverId}`);
     if (fileRef.current) fileRef.current.value = "";

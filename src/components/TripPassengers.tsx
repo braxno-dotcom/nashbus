@@ -110,7 +110,13 @@ export default function TripPassengers({ dict, driverId, refreshKey = 0 }: { dic
     }
   }
 
-  async function handleDeleteBooking(id: string) {
+  async function handleDeleteBooking(id: string, name: string) {
+    const confirmMsg = (dict.search as Record<string, string>).submit === "Найти"
+      ? `Удалить пассажира "${name}"?`
+      : (dict.search as Record<string, string>).submit === "Знайти"
+        ? `Видалити пасажира "${name}"?`
+        : `Ștergeți pasagerul "${name}"?`;
+    if (!confirm(confirmMsg)) return;
     await sbFetch(`bookings?id=eq.${id}`, { method: "DELETE" });
     setBookings(bookings.filter(b => b.id !== id));
   }
@@ -253,7 +259,7 @@ export default function TripPassengers({ dict, driverId, refreshKey = 0 }: { dic
                     </div>
                   </div>
                   <button
-                    onClick={() => handleDeleteBooking(b.id)}
+                    onClick={() => handleDeleteBooking(b.id, b.passenger_name)}
                     className="text-gray-300 hover:text-red-500 transition-colors shrink-0 ml-2"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

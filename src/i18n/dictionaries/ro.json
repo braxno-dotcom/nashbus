@@ -21,7 +21,9 @@
     "to": "Încotro",
     "date": "Data",
     "submit": "Caută",
-    "started": "Căutarea a început! Vom găsi cele mai bune curse pentru dvs."
+    "started": "Căutarea a început! Vom găsi cele mai bune curse pentru dvs.",
+    "reset": "Resetare",
+    "error": "Eroare de încărcare. Încercați din nou."
   },
   "trips": {
     "title": "Curse apropiate",

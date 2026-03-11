@@ -75,6 +75,8 @@ export default function TripSearch({ dict }: { dict: Dict }) {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sortBy, setSortBy] = useState<"date" | "price">("date");
+  const [error, setError] = useState(false);
 
   const cities = dict.cities as Record<string, string>;
 
@@ -84,6 +86,7 @@ export default function TripSearch({ dict }: { dict: Dict }) {
 
     setLoading(true);
     setSearched(true);
+    setError(false);
 
     try {
       // Fetch all routes
@@ -134,6 +137,7 @@ export default function TripSearch({ dict }: { dict: Dict }) {
       setTrips(filtered);
     } catch {
       setTrips([]);
+      setError(true);
     }
 
     setLoading(false);
@@ -171,6 +175,7 @@ export default function TripSearch({ dict }: { dict: Dict }) {
               <input
                 type="date"
                 value={searchDate}
+                min={new Date().toISOString().split("T")[0]}
                 onChange={(e) => setSearchDate(e.target.value)}
                 className="sm:w-36 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-800 text-xs focus:outline-none focus:border-blue-500 transition-all"
               />
@@ -186,9 +191,12 @@ export default function TripSearch({ dict }: { dict: Dict }) {
               <button
                 type="button"
                 onClick={handleReset}
-                className="mt-2 text-[10px] text-blue-600 hover:underline"
+                className="mt-2 text-[10px] text-blue-600 hover:underline flex items-center gap-1"
               >
-                ✕
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                {(dict.search as Record<string, string>).reset || "Reset"}
               </button>
             )}
           </form>
@@ -200,18 +208,46 @@ export default function TripSearch({ dict }: { dict: Dict }) {
         <div className="max-w-5xl mx-auto">
           {searched && (
             <>
-              <h2 className="text-sm font-bold text-gray-800 mb-3">
-                {dict.trips.title}
-              </h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-bold text-gray-800">
+                  {dict.trips.title}
+                  {!loading && trips.length > 0 && (
+                    <span className="ml-1.5 text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{trips.length}</span>
+                  )}
+                </h2>
+                {trips.length > 1 && (
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => setSortBy("date")}
+                      className={`text-[10px] px-2 py-1 rounded font-medium transition-colors ${sortBy === "date" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
+                    >
+                      {dict.search.date}
+                    </button>
+                    <button
+                      onClick={() => setSortBy("price")}
+                      className={`text-[10px] px-2 py-1 rounded font-medium transition-colors ${sortBy === "price" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
+                    >
+                      {dict.driver.price}
+                    </button>
+                  </div>
+                )}
+              </div>
               {loading ? (
                 <div className="flex justify-center py-8">
                   <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                 </div>
+              ) : error ? (
+                <p className="text-center text-xs text-red-500 py-6">
+                  {(dict.search as Record<string, string>).error || "Error loading. Try again."}
+                </p>
               ) : trips.length === 0 ? (
                 <p className="text-center text-xs text-gray-400 py-6">{dict.trips.noResults}</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {trips.map((trip) => (
+                  {[...trips].sort((a, b) => {
+                    if (sortBy === "price") return (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0);
+                    return a.date.localeCompare(b.date);
+                  }).map((trip) => (
                     <TripCard key={trip.id} trip={trip} dict={dict} />
                   ))}
                 </div>

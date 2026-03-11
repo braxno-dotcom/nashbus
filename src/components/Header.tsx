@@ -1,6 +1,7 @@
 import type { Locale } from "@/i18n/config";
 import { basePath } from "@/lib/base-path";
 import LanguageSwitcher from "./LanguageSwitcher";
+import ActiveLink from "./ActiveLink";
 
 type Dict = Awaited<ReturnType<typeof import("@/i18n/get-dictionary").getDictionary>>;
 
@@ -17,18 +18,22 @@ export default function Header({ lang, dict }: { lang: Locale; dict: Dict }) {
           </a>
         </div>
         <div className="flex items-center gap-1">
-          <a
+          <ActiveLink
             href={`${basePath}/${lang}/driver/`}
-            className="bg-yellow-400 text-gray-900 px-2 py-1 rounded text-[10px] font-bold hover:bg-yellow-300 transition-colors"
+            activeClass="bg-yellow-300 ring-1 ring-yellow-500"
+            defaultClass="bg-yellow-400 hover:bg-yellow-300"
+            className="text-gray-900 px-2 py-1 rounded text-[10px] font-bold transition-colors"
           >
             {dict.nav.driverPanel}
-          </a>
-          <a
+          </ActiveLink>
+          <ActiveLink
             href={`${basePath}/${lang}/complaints/`}
-            className="bg-white/15 text-white px-2 py-1 rounded text-[10px] font-medium hover:bg-white/25 transition-colors"
+            activeClass="bg-white/30 ring-1 ring-white/50"
+            defaultClass="bg-white/15 hover:bg-white/25"
+            className="text-white px-2 py-1 rounded text-[10px] font-medium transition-colors"
           >
             {dict.nav.complaints}
-          </a>
+          </ActiveLink>
           <LanguageSwitcher current={lang} />
         </div>
       </div>
