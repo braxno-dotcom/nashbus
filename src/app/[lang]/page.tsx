@@ -4,85 +4,6 @@ import Header from "@/components/Header";
 import TripSearch from "@/components/TripSearch";
 import AdSlot from "@/components/AdSlot";
 
-const SAMPLE_TRIPS = [
-  {
-    id: "1",
-    carrier: "EuroTrans",
-    fromKey: "paris",
-    toKey: "kyiv",
-    date: "15.03.2026",
-    departure: "06:00",
-    arrival: "14:00+1",
-    duration: "32h",
-    price: "€95",
-    seats: 14,
-    maxSeats: 20,
-    bookedSeats: 6,
-    parcels: true,
-    pickupLat: 48.8566,
-    pickupLng: 2.3522,
-    phone: "+380501234567",
-    waypoints: ["strasbourg", "nuremberg", "prague", "krakow", "lviv", "ternopil", "zhytomyr"],
-  },
-  {
-    id: "2",
-    carrier: "BerlinLvivBus",
-    fromKey: "berlin",
-    toKey: "lviv",
-    date: "16.03.2026",
-    departure: "18:00",
-    arrival: "16:00+1",
-    duration: "22h",
-    price: "€75",
-    seats: 10,
-    maxSeats: 18,
-    bookedSeats: 8,
-    parcels: true,
-    pickupLat: 52.52,
-    pickupLng: 13.405,
-    phone: "+380671234567",
-    waypoints: ["wroclaw", "katowice", "krakow", "rzeszow", "ivanofrankivsk"],
-  },
-  {
-    id: "3",
-    carrier: "WarszawaOdesa",
-    fromKey: "warsaw",
-    toKey: "odesa",
-    date: "17.03.2026",
-    departure: "07:00",
-    arrival: "08:00+1",
-    duration: "25h",
-    price: "€80",
-    seats: 8,
-    maxSeats: 20,
-    bookedSeats: 20,
-    parcels: true,
-    pickupLat: 52.2297,
-    pickupLng: 21.0122,
-    phone: "+380931234567",
-    waypoints: ["lublin", "lviv", "ternopil", "vinnytsya", "kyiv", "mykolaiv"],
-  },
-  {
-    id: "4",
-    carrier: "MoldovaExpress",
-    fromKey: "chisinau",
-    toKey: "chernivtsi",
-    date: "18.03.2026",
-    departure: "06:30",
-    arrival: "14:00",
-    duration: "7.5h",
-    price: "€30",
-    seats: 6,
-    maxSeats: 15,
-    bookedSeats: 3,
-    parcels: false,
-    pickupLat: 47.0105,
-    pickupLng: 28.8638,
-    phone: "+373691234567",
-    waypoints: ["tiraspol", "odesa", "iasi", "suceava", "siret"],
-  },
-];
-
 export default async function Home({
   params,
 }: {
@@ -115,8 +36,8 @@ export default async function Home({
         </div>
       </section>
 
-      {/* Search + Trips (client component with smart filtering) */}
-      <TripSearch trips={SAMPLE_TRIPS} dict={dict} />
+      {/* Search + Trips from Supabase */}
+      <TripSearch dict={dict} />
 
       {/* Ad */}
       <section className="px-4 pb-4">
