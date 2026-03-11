@@ -75,7 +75,10 @@
     "totalTrips": "Рейсів створено",
     "pickupAddress": "Точка збору (адреса)",
     "geoFind": "📍 Знайти",
-    "geoNotFound": "Адресу не знайдено"
+    "geoNotFound": "Адресу не знайдено",
+    "departure": "Час відправлення",
+    "arrival": "Час прибуття",
+    "duration": "В дорозі (напр. 12г)"
   },
   "clients": {
     "title": "Мої клієнти",

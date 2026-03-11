@@ -38,6 +38,9 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [date, setDate] = useState("");
+  const [departure, setDeparture] = useState("");
+  const [arrival, setArrival] = useState("");
+  const [duration, setDuration] = useState("");
   const [busNumber, setBusNumber] = useState("");
   const [price, setPrice] = useState("");
   const [seats, setSeats] = useState("");
@@ -55,6 +58,11 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
   const [lng, setLng] = useState("");
   const [geoLoading, setGeoLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const cities = dict.cities as Record<string, string>;
+  const cityKeys = Object.keys(cities).sort((a, b) => cities[a].localeCompare(cities[b]));
+  const driverDict = dict.driver as Record<string, string>;
+  const selectCity = (dict.clients as Record<string, string>).selectCity || "Select city";
 
   function addWaypoint() {
     setWaypoints([...waypoints, ""]);
@@ -123,6 +131,9 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
       from_key: from,
       to_key: to,
       trip_date: date,
+      departure: departure || "",
+      arrival: arrival || "",
+      duration: duration || "",
       price: price || "0",
       seats: parseInt(seats) || 0,
       total_seats: parseInt(totalSeats) || 20,
@@ -150,6 +161,7 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
         alert(dict.driver.success);
         setOpen(false);
         setFrom(""); setTo(""); setDate(""); setBusNumber("");
+        setDeparture(""); setArrival(""); setDuration("");
         setPrice(""); setSeats(""); setMaxSeats("20"); setPhone("");
         setWaypoints([]); setLogoUrl(""); setLogoPreview("");
         setAddress(""); setLat(""); setLng(""); setGeoStatus(""); setGeoOk(false);
@@ -165,8 +177,6 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
     }
     setSaving(false);
   }
-
-  const driverDict = dict.driver as Record<string, string>;
 
   return (
     <>
@@ -224,9 +234,20 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
                 />
               </div>
 
+              {/* City selectors */}
               <div className="grid grid-cols-2 gap-2">
-                <input type="text" value={from} onChange={(e) => setFrom(e.target.value)} placeholder={dict.driver.from} required className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
-                <input type="text" value={to} onChange={(e) => setTo(e.target.value)} placeholder={dict.driver.to} required className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                <select value={from} onChange={(e) => setFrom(e.target.value)} required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500">
+                  <option value="">{dict.driver.from}</option>
+                  {cityKeys.map((key) => (
+                    <option key={key} value={key}>{cities[key]}</option>
+                  ))}
+                </select>
+                <select value={to} onChange={(e) => setTo(e.target.value)} required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500">
+                  <option value="">{dict.driver.to}</option>
+                  {cityKeys.map((key) => (
+                    <option key={key} value={key}>{cities[key]}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Waypoints */}
@@ -238,13 +259,16 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
                   <div key={i} className="flex gap-1.5">
                     <div className="flex items-center gap-1 flex-1">
                       <span className="text-[9px] text-gray-400 shrink-0 w-4 text-center">{i + 1}.</span>
-                      <input
-                        type="text"
+                      <select
                         value={wp}
                         onChange={(e) => updateWaypoint(i, e.target.value)}
-                        placeholder={`${dict.driver.waypoints} ${i + 1}`}
-                        className="flex-1 px-2 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                      />
+                        className="flex-1 px-2 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="">{selectCity}</option>
+                        {cityKeys.map((key) => (
+                          <option key={key} value={key}>{cities[key]}</option>
+                        ))}
+                      </select>
                     </div>
                     <button
                       type="button"
@@ -267,15 +291,26 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
                 </button>
               </div>
 
+              {/* Date + price */}
               <div className="grid grid-cols-2 gap-2">
                 <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500" />
                 <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={dict.driver.price} min="1" required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
               </div>
+
+              {/* Departure, arrival, duration */}
+              <div className="grid grid-cols-3 gap-2">
+                <input type="time" value={departure} onChange={(e) => setDeparture(e.target.value)} placeholder={driverDict.departure} className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500" />
+                <input type="time" value={arrival} onChange={(e) => setArrival(e.target.value)} placeholder={driverDict.arrival} className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500" />
+                <input type="text" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder={driverDict.duration || "12ч"} className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+              </div>
+
+              {/* Bus number, seats */}
               <div className="grid grid-cols-3 gap-2">
                 <input type="text" value={busNumber} onChange={(e) => setBusNumber(e.target.value)} placeholder={dict.clients.busNumber} className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
                 <input type="number" value={seats} onChange={(e) => setSeats(e.target.value)} placeholder={dict.driver.seats} min="1" max="60" required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
                 <input type="number" value={totalSeats} onChange={(e) => setMaxSeats(e.target.value)} placeholder={driverDict.totalSeats || "Max"} min="1" max="60" className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
               </div>
+
               {/* Pickup address with geocoding */}
               <div>
                 <div className="flex gap-1.5">

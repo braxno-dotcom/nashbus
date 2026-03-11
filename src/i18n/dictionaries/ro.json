@@ -75,7 +75,10 @@
     "totalTrips": "Curse create",
     "pickupAddress": "Punct de colectare (adresă)",
     "geoFind": "📍 Caută",
-    "geoNotFound": "Adresa nu a fost găsită"
+    "geoNotFound": "Adresa nu a fost găsită",
+    "departure": "Ora plecării",
+    "arrival": "Ora sosirii",
+    "duration": "În drum (ex. 12h)"
   },
   "clients": {
     "title": "Clienții mei",
