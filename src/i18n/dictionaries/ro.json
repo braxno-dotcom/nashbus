@@ -77,7 +77,6 @@
     "geoFind": "📍 Caută",
     "geoNotFound": "Adresa nu a fost găsită",
     "departure": "Ora plecării",
-    "arrival": "Ora sosirii",
     "duration": "În drum (ex. 12h)"
   },
   "clients": {
