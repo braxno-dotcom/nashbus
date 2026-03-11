@@ -6,6 +6,7 @@ import AuthForm from "./AuthForm";
 import AddTripForm from "./AddTripForm";
 import DriverClients from "./DriverClients";
 import TripPassengers from "./TripPassengers";
+import StatsModal from "./StatsModal";
 
 type Dict = Awaited<ReturnType<typeof import("@/i18n/get-dictionary").getDictionary>>;
 
@@ -31,7 +32,7 @@ async function uploadLogo(file: File, driverId: string): Promise<string | null> 
   return `${SUPABASE_URL}/storage/v1/object/public/logos/${fileName}`;
 }
 
-export default function DriverPageClient({ dict }: { dict: Dict }) {
+export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: string }) {
   const [loggedIn, setLoggedIn] = useState(false);
   const [driverId, setDriverId] = useState("");
   const [driverName, setDriverName] = useState("");
@@ -172,6 +173,7 @@ export default function DriverPageClient({ dict }: { dict: Dict }) {
         />
       </div>
 
+      <StatsModal dict={dict} driverId={driverId} lang={lang} />
       <AddTripForm dict={dict} driverId={driverId} driverName={driverName} driverLogoUrl={logoUrl} onTripAdded={() => setTripRefresh(prev => prev + 1)} />
       <TripPassengers dict={dict} driverId={driverId} refreshKey={tripRefresh} />
       <DriverClients dict={dict} driverId={driverId} />

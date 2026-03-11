@@ -16,7 +16,7 @@ export default async function DriverPage({
       <Header lang={lang as Locale} dict={dict} />
       <div className="pt-12 px-4 pb-8">
         <div className="max-w-2xl mx-auto">
-          <DriverPageClient dict={dict} />
+          <DriverPageClient dict={dict} lang={lang} />
         </div>
       </div>
     </div>

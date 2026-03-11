@@ -223,7 +223,10 @@
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <h3 data-i18n="allTrips">Все рейсы</h3>
-        <button onclick="resetToDemo()" class="btn-reset-demo" data-i18n="resetDemo">Сбросить на демо-данные</button>
+        <div style="display:flex;gap:6px">
+          <button onclick="openStatsModal()" class="btn-edit" style="font-size:10px">📊 <span data-i18n="statsBtn">Статистика</span></button>
+          <button onclick="resetToDemo()" class="btn-reset-demo" data-i18n="resetDemo">Сбросить на демо-данные</button>
+        </div>
       </div>
       <div style="overflow-x:auto">
         <table class="trip-table">
@@ -242,6 +245,17 @@
         </table>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Stats modal -->
+<div id="stats-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeStatsModal()">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-header">
+      <h3 id="stats-modal-title"></h3>
+      <button class="modal-close" onclick="closeStatsModal()">✕</button>
+    </div>
+    <div id="stats-modal-body" style="text-align:center"></div>
   </div>
 </div>
 
@@ -299,6 +313,7 @@ var ADMIN_DICT = {
       parcels: "Приймає посилки", save: "Зберегти", cancel: "Скасувати" },
     th: { carrier: "Перевізник", route: "Маршрут", stops: "Зупинки", date: "Дата", price: "Ціна", seats: "Місця", actions: "Дії" },
     booked: "Зайнято", free: "Вільно", of: "з",
+    statsBtn: "Статистика", statsTrips: "Рейсів за місяць", statsPaxMonth: "Пасажирів за місяць", statsPaxTotal: "Всього через платформу",
     pax: { title: "Пасажири", name: "Прізвище та ім'я", phone: "Телефон", from: "Звідки", to: "Куди", seats: "Місць", add: "Додати пасажира", save: "Зберегти", empty: "Пасажирів поки немає", occupied: "Зайнято", ofTotal: "з" }
   },
   ru: {
@@ -322,6 +337,7 @@ var ADMIN_DICT = {
       parcels: "Принимает посылки", save: "Сохранить", cancel: "Отмена" },
     th: { carrier: "Перевозчик", route: "Маршрут", stops: "Остановки", date: "Дата", price: "Цена", seats: "Места", actions: "Действия" },
     booked: "Занято", free: "Свободно", of: "из",
+    statsBtn: "Статистика", statsTrips: "Рейсов за месяц", statsPaxMonth: "Пассажиров за месяц", statsPaxTotal: "Всего через платформу",
     pax: { title: "Пассажиры", name: "Фамилия и имя", phone: "Телефон", from: "Откуда", to: "Куда", seats: "Мест", add: "Добавить пассажира", save: "Сохранить", empty: "Пассажиров пока нет", occupied: "Занято", ofTotal: "из" }
   },
   ro: {
@@ -345,6 +361,7 @@ var ADMIN_DICT = {
       parcels: "Acceptă colete", save: "Salvează", cancel: "Anulare" },
     th: { carrier: "Transportator", route: "Rută", stops: "Opriri", date: "Data", price: "Preț", seats: "Locuri", actions: "Acțiuni" },
     booked: "Ocupate", free: "Libere", of: "din",
+    statsBtn: "Statistică", statsTrips: "Curse luna aceasta", statsPaxMonth: "Pasageri luna aceasta", statsPaxTotal: "Total prin platformă",
     pax: { title: "Pasageri", name: "Nume și prenume", phone: "Telefon", from: "De unde", to: "Unde", seats: "Locuri", add: "Adaugă pasager", save: "Salvează", empty: "Nu sunt pasageri încă", occupied: "Ocupate", ofTotal: "din" }
   }
 };
@@ -705,6 +722,66 @@ async function resetToDemo() {
   if (!confirm(at("confirmReset"))) return;
   trips = await sbResetToDemo(DEFAULT_TRIPS);
   renderTable();
+}
+
+// ==================== Stats Modal ====================
+var MONTH_NAMES = {
+  uk: ["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"],
+  ru: ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"],
+  ro: ["Ianuarie","Februarie","Martie","Aprilie","Mai","Iunie","Iulie","August","Septembrie","Octombrie","Noiembrie","Decembrie"]
+};
+
+async function openStatsModal() {
+  document.getElementById("stats-modal").style.display = "";
+  var monthIdx = new Date().getMonth();
+  var monthName = (MONTH_NAMES[currentLang] || MONTH_NAMES.ru)[monthIdx];
+  document.getElementById("stats-modal-title").textContent = at("statsBtn") + " — " + monthName;
+  document.getElementById("stats-modal-body").innerHTML = '<div style="padding:24px"><div style="width:24px;height:24px;border:2px solid #2563eb;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto"></div></div>';
+
+  var now = new Date();
+  var year = now.getFullYear();
+  var month = String(now.getMonth() + 1).padStart(2, "0");
+  var monthStart = year + "-" + month + "-01";
+  var nextMonth = now.getMonth() === 11 ? (year + 1) + "-01-01" : year + "-" + String(now.getMonth() + 2).padStart(2, "0") + "-01";
+
+  // Count trips this month
+  var monthTrips = trips.filter(function(t) {
+    var d = t.date;
+    // Handle DD.MM.YYYY format
+    if (d && d.indexOf(".") !== -1) d = toIsoDate(d);
+    return d >= monthStart && d < nextMonth;
+  });
+
+  // Load all bookings
+  var { data: allBookings, error } = await sb.from("bookings").select("route_id,seats_count");
+  allBookings = error ? [] : (allBookings || []);
+
+  var monthRouteIds = {};
+  monthTrips.forEach(function(t) { monthRouteIds[t.id] = true; });
+
+  var paxMonth = 0;
+  var paxTotal = 0;
+  allBookings.forEach(function(b) {
+    var s = b.seats_count || 1;
+    paxTotal += s;
+    if (monthRouteIds[b.route_id]) paxMonth += s;
+  });
+
+  document.getElementById("stats-modal-body").innerHTML =
+    '<div style="background:#eff6ff;border-radius:10px;padding:14px;margin-bottom:10px">' +
+    '<div style="font-size:28px;font-weight:700;color:#2563eb">' + monthTrips.length + '</div>' +
+    '<div style="font-size:10px;color:#3b82f6;font-weight:500">' + at("statsTrips") + '</div></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+    '<div style="background:#f0fdf4;border-radius:10px;padding:14px">' +
+    '<div style="font-size:28px;font-weight:700;color:#16a34a">' + paxMonth + '</div>' +
+    '<div style="font-size:10px;color:#22c55e;font-weight:500">' + at("statsPaxMonth") + '</div></div>' +
+    '<div style="background:#faf5ff;border-radius:10px;padding:14px">' +
+    '<div style="font-size:28px;font-weight:700;color:#9333ea">' + paxTotal + '</div>' +
+    '<div style="font-size:10px;color:#a855f7;font-weight:500">' + at("statsPaxTotal") + '</div></div></div>';
+}
+
+function closeStatsModal() {
+  document.getElementById("stats-modal").style.display = "none";
 }
 
 // ==================== Passenger Modal ====================

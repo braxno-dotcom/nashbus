@@ -2,7 +2,7 @@
   "nav": {
     "title": "NashBus",
     "addTrip": "Adaugă cursă",
-    "myClients": "Clienții mei",
+    "myClients": "Clienții mei (colete)",
     "complaints": "Contactați adminul",
     "login": "Autentificare",
     "logout": "Deconectare",
@@ -77,11 +77,15 @@
     "geoFind": "📍 Caută",
     "geoNotFound": "Adresa nu a fost găsită",
     "departure": "Ora plecării",
-    "duration": "În drum (ex. 12h)"
+    "duration": "În drum (ex. 12h)",
+    "statistics": "Statistică",
+    "statsTrips": "Curse luna aceasta",
+    "statsPaxMonth": "Pasageri luna aceasta",
+    "statsPaxTotal": "Total prin platformă"
   },
   "clients": {
-    "title": "Clienții mei",
-    "subtitle": "Seiful dvs. personal — datele sunt vizibile doar pentru dvs.",
+    "title": "Clienții mei (colete)",
+    "subtitle": "Evidența destinatarilor de colete. Datele sunt vizibile doar pentru dvs.",
     "name": "Numele clientului",
     "phone": "Telefonul clientului",
     "address": "Adresa de livrare",
