@@ -110,6 +110,24 @@ export default function TripPassengers({ dict, driverId, refreshKey = 0 }: { dic
     }
   }
 
+  async function handleDeleteRoute(routeId: string) {
+    const route = routes.find(r => r.id === routeId);
+    if (!route) return;
+    const routeName = `${cities[route.from_key] || route.from_key} → ${cities[route.to_key] || route.to_key} (${route.trip_date})`;
+    const confirmMsg = (dict.search as Record<string, string>).submit === "Найти"
+      ? `Удалить рейс "${routeName}" и всех пассажиров?`
+      : (dict.search as Record<string, string>).submit === "Знайти"
+        ? `Видалити рейс "${routeName}" та всіх пасажирів?`
+        : `Ștergeți cursa "${routeName}" și toți pasagerii?`;
+    if (!confirm(confirmMsg)) return;
+    // Delete bookings first, then route
+    await sbFetch(`bookings?route_id=eq.${routeId}`, { method: "DELETE" });
+    await sbFetch(`routes?id=eq.${routeId}`, { method: "DELETE" });
+    setRoutes(routes.filter(r => r.id !== routeId));
+    setSelectedRoute("");
+    setBookings([]);
+  }
+
   async function handleDeleteBooking(id: string, name: string) {
     const confirmMsg = (dict.search as Record<string, string>).submit === "Найти"
       ? `Удалить пассажира "${name}"?`
@@ -160,7 +178,7 @@ export default function TripPassengers({ dict, driverId, refreshKey = 0 }: { dic
 
       {selectedRoute && (
         <>
-          {/* Seats info */}
+          {/* Seats info + actions */}
           <div className="flex items-center justify-between mb-2">
             {seatsLeft > 0 ? (
               <span className="text-[10px] text-gray-600">
@@ -173,15 +191,26 @@ export default function TripPassengers({ dict, driverId, refreshKey = 0 }: { dic
                 {(dict.trips as Record<string, string>).noSeats || "No seats"}
               </span>
             )}
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="text-[10px] bg-yellow-400 text-gray-900 font-bold px-3 py-1.5 rounded-lg hover:bg-yellow-300 active:scale-[0.98] transition-all flex items-center gap-1"
-            >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              {driverDict.addPassenger || "Add"}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => handleDeleteRoute(selectedRoute)}
+                className="text-[10px] bg-red-50 text-red-600 font-bold px-3 py-1.5 rounded-lg hover:bg-red-100 active:scale-[0.98] transition-all flex items-center gap-1"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                {(dict.clients as Record<string, string>).delete || "Delete"}
+              </button>
+              <button
+                onClick={() => setShowForm(!showForm)}
+                className="text-[10px] bg-yellow-400 text-gray-900 font-bold px-3 py-1.5 rounded-lg hover:bg-yellow-300 active:scale-[0.98] transition-all flex items-center gap-1"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                {driverDict.addPassenger || "Add"}
+              </button>
+            </div>
           </div>
 
           {/* Add passenger form */}
