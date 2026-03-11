@@ -71,6 +71,29 @@
     .arrival-row { display: flex; align-items: center; gap: 6px; }
     .arrival-row input[type=time] { flex: 1; }
     .arrival-row select { width: auto; min-width: 70px; font-size: 11px; padding: 6px 4px; }
+    /* Passenger modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; display: flex; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; border-radius: 12px; padding: 16px; width: 100%; max-width: 420px; margin: 16px; max-height: 80vh; overflow-y: auto; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .modal-header h3 { font-size: 13px; font-weight: 700; color: #1f2937; }
+    .modal-close { width: 24px; height: 24px; border-radius: 50%; background: #f3f4f6; border: none; color: #6b7280; font-size: 12px; cursor: pointer; }
+    .modal-close:hover { background: #e5e7eb; }
+    .pax-item { display: flex; align-items: center; justify-content: space-between; background: #f9fafb; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; }
+    .pax-info { flex: 1; min-width: 0; }
+    .pax-name { font-size: 12px; font-weight: 600; color: #1f2937; }
+    .pax-phone { font-size: 10px; color: #6b7280; }
+    .pax-route { font-size: 9px; color: #9ca3af; }
+    .pax-seats { font-size: 10px; color: #6b7280; margin-left: 4px; }
+    .pax-del { background: none; border: none; color: #d1d5db; cursor: pointer; padding: 4px; }
+    .pax-del:hover { color: #dc2626; }
+    .pax-form { background: #f9fafb; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+    .pax-form input { width: 100%; padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 11px; margin-bottom: 6px; background: #fff; }
+    .pax-form .pax-row { display: grid; grid-template-columns: 1fr 1fr 60px; gap: 6px; }
+    .pax-form .pax-row input { margin-bottom: 0; }
+    .btn-pax { background: #eab308; color: #1f2937; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; border: none; white-space: nowrap; }
+    .btn-pax:hover { background: #facc15; }
+    .seats-summary { font-size: 10px; color: #6b7280; margin-bottom: 8px; }
+    .seats-summary strong { color: #1f2937; }
     @media (max-width: 768px) {
       .trip-table, .trip-table thead, .trip-table tbody, .trip-table th, .trip-table td, .trip-table tr { display: block; }
       .trip-table thead { display: none; }
@@ -222,6 +245,19 @@
   </div>
 </div>
 
+<!-- Passenger modal -->
+<div id="pax-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closePaxModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="pax-modal-title"></h3>
+      <button class="modal-close" onclick="closePaxModal()">✕</button>
+    </div>
+    <div id="pax-seats-info" class="seats-summary"></div>
+    <div id="pax-form-wrap"></div>
+    <div id="pax-list"></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script>
@@ -262,7 +298,8 @@ var ADMIN_DICT = {
       power: "Розетки", ac: "Кондиціонер", toilet: "Туалет", luggage: "Багаж", pets: "Тварини",
       parcels: "Приймає посилки", save: "Зберегти", cancel: "Скасувати" },
     th: { carrier: "Перевізник", route: "Маршрут", stops: "Зупинки", date: "Дата", price: "Ціна", seats: "Місця", actions: "Дії" },
-    booked: "Зайнято", free: "Вільно", of: "з"
+    booked: "Зайнято", free: "Вільно", of: "з",
+    pax: { title: "Пасажири", name: "Прізвище та ім'я", phone: "Телефон", from: "Звідки", to: "Куди", seats: "Місць", add: "Додати пасажира", save: "Зберегти", empty: "Пасажирів поки немає", occupied: "Зайнято", ofTotal: "з" }
   },
   ru: {
     backToSite: "← На сайт",
@@ -284,7 +321,8 @@ var ADMIN_DICT = {
       power: "Розетки", ac: "Кондиционер", toilet: "Туалет", luggage: "Багаж", pets: "Животные",
       parcels: "Принимает посылки", save: "Сохранить", cancel: "Отмена" },
     th: { carrier: "Перевозчик", route: "Маршрут", stops: "Остановки", date: "Дата", price: "Цена", seats: "Места", actions: "Действия" },
-    booked: "Занято", free: "Свободно", of: "из"
+    booked: "Занято", free: "Свободно", of: "из",
+    pax: { title: "Пассажиры", name: "Фамилия и имя", phone: "Телефон", from: "Откуда", to: "Куда", seats: "Мест", add: "Добавить пассажира", save: "Сохранить", empty: "Пассажиров пока нет", occupied: "Занято", ofTotal: "из" }
   },
   ro: {
     backToSite: "← Pe site",
@@ -306,7 +344,8 @@ var ADMIN_DICT = {
       power: "Prize", ac: "Aer condiționat", toilet: "Toaletă", luggage: "Bagaj", pets: "Animale",
       parcels: "Acceptă colete", save: "Salvează", cancel: "Anulare" },
     th: { carrier: "Transportator", route: "Rută", stops: "Opriri", date: "Data", price: "Preț", seats: "Locuri", actions: "Acțiuni" },
-    booked: "Ocupate", free: "Libere", of: "din"
+    booked: "Ocupate", free: "Libere", of: "din",
+    pax: { title: "Pasageri", name: "Nume și prenume", phone: "Telefon", from: "De unde", to: "Unde", seats: "Locuri", add: "Adaugă pasager", save: "Salvează", empty: "Nu sunt pasageri încă", occupied: "Ocupate", ofTotal: "din" }
   }
 };
 
@@ -369,7 +408,7 @@ function renderTable() {
       '<td data-label="' + at("th.date") + '">' + t.date + '<br><span style="color:#9ca3af;font-size:9px">' + t.departure + ' → ' + t.arrival + '</span></td>' +
       '<td data-label="' + at("th.price") + '"><strong>' + t.price + '</strong></td>' +
       '<td data-label="' + at("th.seats") + '">' + seatHtml + '</td>' +
-      '<td data-label="' + at("th.actions") + '"><div class="actions-cell"><button class="btn-edit" onclick="editTrip(\'' + t.id + '\')">✎</button><button class="btn-del" onclick="deleteTrip(\'' + t.id + '\')">✕</button></div></td>' +
+      '<td data-label="' + at("th.actions") + '"><div class="actions-cell"><button class="btn-pax" onclick="openPaxModal(\'' + t.id + '\')">👥 ' + (booked || '') + '</button><button class="btn-edit" onclick="editTrip(\'' + t.id + '\')">✎</button><button class="btn-del" onclick="deleteTrip(\'' + t.id + '\')">✕</button></div></td>' +
       '</tr>';
   }).join("");
   renderStats();
@@ -666,6 +705,118 @@ async function resetToDemo() {
   if (!confirm(at("confirmReset"))) return;
   trips = await sbResetToDemo(DEFAULT_TRIPS);
   renderTable();
+}
+
+// ==================== Passenger Modal ====================
+var paxRouteId = null;
+var paxBookings = [];
+
+async function openPaxModal(routeId) {
+  paxRouteId = routeId;
+  var trip = trips.find(function(t) { return t.id === routeId; });
+  document.getElementById("pax-modal-title").textContent = at("pax.title") + ": " + (trip ? trip.fromKey + " → " + trip.toKey + " (" + trip.date + ")" : "");
+  document.getElementById("pax-modal").style.display = "";
+
+  // Show add form
+  document.getElementById("pax-form-wrap").innerHTML =
+    '<div class="pax-form" id="pax-add-form">' +
+    '<input type="text" id="pax-name" placeholder="' + at("pax.name") + '">' +
+    '<input type="tel" id="pax-phone" placeholder="' + at("pax.phone") + '">' +
+    '<div class="pax-row">' +
+    '<input type="text" id="pax-from" placeholder="' + at("pax.from") + '">' +
+    '<input type="text" id="pax-to" placeholder="' + at("pax.to") + '">' +
+    '<input type="number" id="pax-seats" placeholder="' + at("pax.seats") + '" value="1" min="1" max="10">' +
+    '</div>' +
+    '<button class="btn-primary" style="width:100%;margin-top:4px;font-size:11px;padding:8px" onclick="addPax()">' + at("pax.save") + '</button>' +
+    '</div>';
+
+  // Load bookings
+  var { data, error } = await sb.from("bookings").select("*").eq("route_id", routeId).order("created_at");
+  paxBookings = error ? [] : (data || []);
+  renderPaxList(trip);
+}
+
+function closePaxModal() {
+  document.getElementById("pax-modal").style.display = "none";
+  paxRouteId = null;
+  paxBookings = [];
+}
+
+function renderPaxList(trip) {
+  var total = (trip ? (trip.totalSeats || trip.seats || 20) : 20);
+  var booked = paxBookings.reduce(function(s, b) { return s + (b.seats_count || 1); }, 0);
+  var free = total - booked;
+  var color = free <= 0 ? '#dc2626' : free <= 3 ? '#d97706' : '#16a34a';
+  document.getElementById("pax-seats-info").innerHTML =
+    at("pax.occupied") + ': <strong>' + booked + '</strong> ' + at("pax.ofTotal") + ' <strong>' + total + '</strong> — ' +
+    at("free") + ': <span style="color:' + color + ';font-weight:700">' + free + '</span>';
+
+  var list = document.getElementById("pax-list");
+  if (paxBookings.length === 0) {
+    list.innerHTML = '<p style="text-align:center;font-size:10px;color:#9ca3af;padding:12px 0">' + at("pax.empty") + '</p>';
+    return;
+  }
+  list.innerHTML = paxBookings.map(function(b, i) {
+    return '<div class="pax-item">' +
+      '<div class="pax-info">' +
+      '<div class="pax-name">' + (i + 1) + '. ' + b.passenger_name + '<span class="pax-seats">' + (b.seats_count > 1 ? 'x' + b.seats_count : '') + '</span></div>' +
+      '<div class="pax-phone">' + b.phone + '</div>' +
+      (b.pickup_point || b.dropoff_point ? '<div class="pax-route">' + (b.pickup_point || '') + ' → ' + (b.dropoff_point || '') + '</div>' : '') +
+      '</div>' +
+      '<button class="pax-del" onclick="deletePax(\'' + b.id + '\')" title="Delete">✕</button>' +
+      '</div>';
+  }).join("");
+}
+
+async function addPax() {
+  var name = document.getElementById("pax-name").value.trim();
+  var phone = document.getElementById("pax-phone").value.trim();
+  var pickup = document.getElementById("pax-from").value.trim();
+  var dropoff = document.getElementById("pax-to").value.trim();
+  var seats = parseInt(document.getElementById("pax-seats").value) || 1;
+  if (!name || !phone) return;
+
+  var { data, error } = await sb.from("bookings").insert({
+    route_id: paxRouteId,
+    passenger_name: name,
+    phone: phone,
+    pickup_point: pickup,
+    dropoff_point: dropoff,
+    seats_count: seats
+  }).select();
+
+  if (error) { alert("Error: " + error.message); return; }
+  paxBookings.push(data[0]);
+
+  // Update booking counts
+  bookingCounts[paxRouteId] = (bookingCounts[paxRouteId] || 0) + seats;
+  renderTable();
+
+  // Clear form
+  document.getElementById("pax-name").value = "";
+  document.getElementById("pax-phone").value = "";
+  document.getElementById("pax-from").value = "";
+  document.getElementById("pax-to").value = "";
+  document.getElementById("pax-seats").value = "1";
+
+  var trip = trips.find(function(t) { return t.id === paxRouteId; });
+  renderPaxList(trip);
+}
+
+async function deletePax(bookingId) {
+  var booking = paxBookings.find(function(b) { return b.id === bookingId; });
+  var { error } = await sb.from("bookings").delete().eq("id", bookingId);
+  if (error) { alert("Error: " + error.message); return; }
+  paxBookings = paxBookings.filter(function(b) { return b.id !== bookingId; });
+
+  // Update booking counts
+  if (booking) {
+    bookingCounts[paxRouteId] = Math.max(0, (bookingCounts[paxRouteId] || 0) - (booking.seats_count || 1));
+  }
+  renderTable();
+
+  var trip = trips.find(function(t) { return t.id === paxRouteId; });
+  renderPaxList(trip);
 }
 
 // ==================== Init ====================
