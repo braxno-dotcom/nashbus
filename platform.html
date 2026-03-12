@@ -511,7 +511,8 @@ function renderCodes() {
     return '<tr>' +
       '<td style="font-weight:600">' + c.driver_name + '</td>' +
       '<td><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:11px;letter-spacing:1px">' + c.code + '</code>' +
-      ' <button onclick="copyCode(\'' + c.code + '\',this)" style="background:none;border:none;cursor:pointer;font-size:10px;color:#6b7280" title="Копировать">📋</button></td>' +
+      ' <button onclick="copyCode(\'' + c.code + '\',this)" style="background:none;border:none;cursor:pointer;font-size:10px;color:#6b7280" title="Копировать">📋</button>' +
+      ' <button onclick="sendCodeWhatsApp(\'' + c.code + '\',\'' + c.driver_name.replace(/'/g, "\\'") + '\',\'' + (c.phone || '') + '\')" style="background:#22c55e;color:#fff;font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;border:none;cursor:pointer" title="WhatsApp">WA</button></td>' +
       '<td>' + (c.phone || '—') + '</td>' +
       '<td>' + expDate + '</td>' +
       '<td><span style="color:' + statusColor + ';font-weight:600;font-size:10px">' + statusText + '</span></td>' +
@@ -555,6 +556,15 @@ function copyCode(code, btn) {
   var orig = btn.textContent;
   btn.textContent = "✓";
   setTimeout(function() { btn.textContent = orig; }, 1500);
+}
+
+function sendCodeWhatsApp(code, name, phone) {
+  var driverUrl = "https://braxno-dotcom.github.io/nashbus/uk/driver/";
+  var text = name + ", ваш код доступа к NashBus:\n\n" + code + "\n\nВведите его здесь: " + driverUrl;
+  var url = phone
+    ? "https://wa.me/" + phone.replace(/[^0-9]/g, "") + "?text=" + encodeURIComponent(text)
+    : "https://wa.me/?text=" + encodeURIComponent(text);
+  window.open(url, "_blank");
 }
 
 async function toggleCode(id, active) {
