@@ -509,11 +509,11 @@ function renderCodes() {
     var statusText = isActive ? "Активен" : (isExpired ? "Истёк" : "Отключён");
     var expDate = exp.toLocaleDateString("ru-RU");
     return '<tr>' +
-      '<td style="font-weight:600">' + c.driver_name + '</td>' +
+      '<td style="font-weight:600"><span onclick="editCodeName(\'' + c.id + '\',\'' + c.driver_name.replace(/'/g, "\\'") + '\')" style="cursor:pointer;border-bottom:1px dashed #9ca3af" title="Нажми чтобы изменить">' + c.driver_name + '</span></td>' +
       '<td><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:11px;letter-spacing:1px">' + c.code + '</code>' +
       ' <button onclick="copyCode(\'' + c.code + '\',this)" style="background:none;border:none;cursor:pointer;font-size:10px;color:#6b7280" title="Копировать">📋</button>' +
       ' <button onclick="sendCodeWhatsApp(\'' + c.code + '\',\'' + c.driver_name.replace(/'/g, "\\'") + '\',\'' + (c.phone || '').replace(/'/g, "\\'") + '\')" style="background:#22c55e;color:#fff;font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;border:none;cursor:pointer" title="WhatsApp">WA</button></td>' +
-      '<td>' + (c.phone || '—') + '</td>' +
+      '<td><span onclick="editCodePhone(\'' + c.id + '\',\'' + (c.phone || '').replace(/'/g, "\\'") + '\')" style="cursor:pointer;border-bottom:1px dashed #9ca3af" title="Нажми чтобы изменить">' + (c.phone || '—') + '</span></td>' +
       '<td>' + expDate + '</td>' +
       '<td><span style="color:' + statusColor + ';font-weight:600;font-size:10px">' + statusText + '</span></td>' +
       '<td style="display:flex;gap:4px">' +
@@ -566,6 +566,20 @@ function sendCodeWhatsApp(code, name, phone) {
     ? "https://wa.me/" + cleanPhone + "?text=" + encodeURIComponent(text)
     : "https://wa.me/?text=" + encodeURIComponent(text);
   window.open(url, "_blank");
+}
+
+async function editCodePhone(id, current) {
+  var val = prompt("Телефон (международный формат):", current);
+  if (val === null) return;
+  await sb.from("driver_codes").update({ phone: val.trim() }).eq("id", id);
+  await loadCodes();
+}
+
+async function editCodeName(id, current) {
+  var val = prompt("Имя водителя:", current);
+  if (val === null || !val.trim()) return;
+  await sb.from("driver_codes").update({ driver_name: val.trim() }).eq("id", id);
+  await loadCodes();
 }
 
 async function toggleCode(id, active) {
