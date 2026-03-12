@@ -129,7 +129,8 @@ export default function TripSearch({ dict }: { dict: Dict }) {
 
           const routeMatch = fromMatch !== -1 && toMatch !== -1 && fromMatch < toMatch;
 
-          const dateMatch = !searchDate || trip.date.includes(searchDate.split("-").reverse().join("."));
+          // Support both DD.MM.YYYY (old) and YYYY-MM-DD (new) date formats
+          const dateMatch = !searchDate || trip.date === searchDate || trip.date === searchDate.split("-").reverse().join(".");
 
           return routeMatch && dateMatch;
         });
