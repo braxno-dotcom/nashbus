@@ -351,9 +351,18 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
 
               {/* Bus number, seats */}
               <div className="grid grid-cols-3 gap-2">
-                <input type="text" value={busNumber} onChange={(e) => setBusNumber(e.target.value)} placeholder={dict.clients.busNumber} className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
-                <input type="number" value={seats} onChange={(e) => setSeats(e.target.value)} placeholder={dict.driver.seats} min="1" max="60" required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
-                <input type="number" value={totalSeats} onChange={(e) => setMaxSeats(e.target.value)} placeholder={driverDict.totalSeats || "Max"} min="1" max="60" className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                <div>
+                  <p className="text-[10px] text-gray-500 mb-0.5">{(dict.clients as Record<string, string>).busNumber}</p>
+                  <input type="text" value={busNumber} onChange={(e) => setBusNumber(e.target.value)} placeholder="AA 0000" className="w-full px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 mb-0.5">{dict.driver.seats}</p>
+                  <input type="number" value={seats} onChange={(e) => setSeats(e.target.value)} placeholder="14" min="1" max="60" required className="w-full px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 mb-0.5">{driverDict.totalSeats || "Total"}</p>
+                  <input type="number" value={totalSeats} onChange={(e) => setMaxSeats(e.target.value)} placeholder="20" min="1" max="60" className="w-full px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500" />
+                </div>
               </div>
 
               {/* Pickup address with geocoding */}
