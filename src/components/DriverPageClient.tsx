@@ -170,6 +170,10 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
       <StatsModal dict={dict} driverId={driverId} lang={lang} />
       <AddTripForm dict={dict} driverId={driverId} driverName={driverName} driverLogoUrl={logoUrl} onTripAdded={() => setTripRefresh(prev => prev + 1)} />
       <TripPassengers dict={dict} driverId={driverId} refreshKey={tripRefresh} />
+
+      {/* Divider */}
+      <div className="border-t-2 border-dashed border-gray-200 my-2"></div>
+
       <DriverClients dict={dict} driverId={driverId} />
     </div>
   );
