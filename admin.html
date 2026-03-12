@@ -113,7 +113,8 @@
     </a>
     <div class="header-actions">
       <span style="color:#facc15;font-size:10px;font-weight:700;padding:4px 8px;background:rgba(250,204,21,.15);border-radius:4px">ADMIN</span>
-      <a href="index.html" style="color:#fff;font-size:10px;padding:4px 8px" data-i18n="backToSite">← На сайт</a>
+      <a href="uk/" data-lang-href="{lang}/" style="color:#fff;font-size:10px;padding:4px 8px" data-i18n="backToSite">← На сайт</a>
+      <a href="uk/complaints/" data-lang-href="{lang}/complaints/" style="color:#94a3b8;font-size:10px;padding:4px 8px" data-i18n="contactAdmin">Связаться</a>
       <div class="lang-switcher">
         <button onclick="setLang('uk')" data-lang="uk">UA</button>
         <button onclick="setLang('ru')" data-lang="ru">RU</button>
@@ -293,6 +294,7 @@
 var ADMIN_DICT = {
   uk: {
     backToSite: "← На сайт",
+    contactAdmin: "Зв'язатися",
     title: "Управління рейсами",
     subtitle: "Додавайте, редагуйте та видаляйте рейси. Зміни миттєво з'являться на головній сторінці.",
     addTrip: "Додати рейс",
@@ -317,6 +319,7 @@ var ADMIN_DICT = {
   },
   ru: {
     backToSite: "← На сайт",
+    contactAdmin: "Связаться",
     title: "Управление рейсами",
     subtitle: "Добавляйте, редактируйте и удаляйте рейсы. Изменения мгновенно появятся на главной странице.",
     addTrip: "Добавить рейс",
@@ -341,6 +344,7 @@ var ADMIN_DICT = {
   },
   ro: {
     backToSite: "← Pe site",
+    contactAdmin: "Contact",
     title: "Gestionarea curselor",
     subtitle: "Adăugați, editați și ștergeți curse. Modificările apar instant pe pagina principală.",
     addTrip: "Adaugă cursă",
@@ -380,6 +384,10 @@ function setLang(lang) {
   document.documentElement.lang = lang;
   applyTranslations();
   renderTable();
+  // Update language-dependent links
+  document.querySelectorAll("[data-lang-href]").forEach(function(el) {
+    el.href = el.getAttribute("data-lang-href").replace("{lang}", lang);
+  });
 }
 
 function applyTranslations() {
@@ -916,6 +924,10 @@ async function deletePax(bookingId) {
 
 // ==================== Init ====================
 applyTranslations();
+// Init language-dependent links
+document.querySelectorAll("[data-lang-href]").forEach(function(el) {
+  el.href = el.getAttribute("data-lang-href").replace("{lang}", currentLang);
+});
 setupAC("f-from", "ac-from", false);
 setupAC("f-to", "ac-to", false);
 setupAC("f-waypoints", "ac-wp", true);
