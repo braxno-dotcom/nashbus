@@ -34,13 +34,16 @@ async function fetchStats(driverId?: string): Promise<Stats> {
   const monthRoutes = routes.filter(r => r.trip_date >= monthStart && r.trip_date < nextMonth);
   const monthRouteIds = new Set(monthRoutes.map(r => r.id));
 
-  // Fetch all bookings
-  const bookingsRes = await fetch(`${SUPABASE_URL}/rest/v1/bookings?select=route_id,seats_count`, { headers });
-  const bookings: { route_id: string; seats_count: number }[] = bookingsRes.ok ? await bookingsRes.json() : [];
-
-  // Filter bookings to this driver's routes if needed
-  const routeIdSet = new Set(allRouteIds);
-  const relevantBookings = driverId ? bookings.filter(b => routeIdSet.has(b.route_id)) : bookings;
+  // Fetch bookings only for this driver's routes
+  let relevantBookings: { route_id: string; seats_count: number }[] = [];
+  if (allRouteIds.length > 0) {
+    const idsParam = `(${allRouteIds.join(",")})`;
+    const bookingsRes = await fetch(`${SUPABASE_URL}/rest/v1/bookings?select=route_id,seats_count&route_id=in.${idsParam}`, { headers });
+    relevantBookings = bookingsRes.ok ? await bookingsRes.json() : [];
+  } else if (!driverId) {
+    const bookingsRes = await fetch(`${SUPABASE_URL}/rest/v1/bookings?select=route_id,seats_count`, { headers });
+    relevantBookings = bookingsRes.ok ? await bookingsRes.json() : [];
+  }
 
   const passengersTotal = relevantBookings.reduce((sum, b) => sum + (b.seats_count || 1), 0);
   const passengersThisMonth = relevantBookings
