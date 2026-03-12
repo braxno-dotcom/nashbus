@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getSession, logout } from "@/lib/auth-storage";
-import AuthForm from "./AuthForm";
+import AuthForm, { getDriverAuth, driverLogout } from "./AuthForm";
 import AddTripForm from "./AddTripForm";
 import DriverClients from "./DriverClients";
 import TripPassengers from "./TripPassengers";
@@ -36,7 +35,6 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
   const [loggedIn, setLoggedIn] = useState(false);
   const [driverId, setDriverId] = useState("");
   const [driverName, setDriverName] = useState("");
-  const [sessionExpired, setSessionExpired] = useState(false);
   const [loading, setLoading] = useState(true);
   const [logoUrl, setLogoUrl] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -44,34 +42,30 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const { account, expired } = getSession();
-    if (account) {
+    const info = getDriverAuth();
+    if (info) {
       setLoggedIn(true);
-      setDriverId(account.id);
-      setDriverName(account.name);
-      // Load saved logo
-      const saved = localStorage.getItem(`${LOGO_KEY}_${account.id}`);
+      setDriverId(info.id);
+      setDriverName(info.name);
+      const saved = localStorage.getItem(`${LOGO_KEY}_${info.id}`);
       if (saved) setLogoUrl(saved);
-    } else if (expired) {
-      setSessionExpired(true);
     }
     setLoading(false);
   }, []);
 
   function handleLogin() {
-    const { account } = getSession();
-    if (account) {
+    const info = getDriverAuth();
+    if (info) {
       setLoggedIn(true);
-      setDriverId(account.id);
-      setDriverName(account.name);
-      setSessionExpired(false);
-      const saved = localStorage.getItem(`${LOGO_KEY}_${account.id}`);
+      setDriverId(info.id);
+      setDriverName(info.name);
+      const saved = localStorage.getItem(`${LOGO_KEY}_${info.id}`);
       if (saved) setLogoUrl(saved);
     }
   }
 
   function handleLogout() {
-    logout();
+    driverLogout();
     setLoggedIn(false);
     setDriverId("");
     setDriverName("");
@@ -110,7 +104,7 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
   }
 
   if (!loggedIn) {
-    return <AuthForm dict={dict} onLogin={handleLogin} sessionExpired={sessionExpired} />;
+    return <AuthForm dict={dict} onLogin={handleLogin} />;
   }
 
   return (
@@ -134,7 +128,6 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
             </div>
             <div>
               <p className="text-xs font-bold text-gray-800">{dict.auth.welcome}, {driverName}!</p>
-              <p className="text-[10px] text-gray-400">{dict.nav.driverPanel}</p>
             </div>
           </div>
           <button

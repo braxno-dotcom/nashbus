@@ -127,7 +127,8 @@
     "wrongPassword": "Parolă greșită",
     "notFound": "Contul nu a fost găsit",
     "welcome": "Bun venit",
-    "sessionExpired": "Sesiunea a expirat. Vă rugăm să vă conectați din nou."
+    "sessionExpired": "Sesiunea a expirat. Vă rugăm să vă conectați din nou.",
+    "remember": "Ține minte parola"
   },
   "complaints": {
     "title": "Contactați adminul",

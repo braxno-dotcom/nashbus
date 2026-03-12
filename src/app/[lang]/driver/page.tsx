@@ -20,9 +20,6 @@ export default async function DriverPage({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 17a2 2 0 002 2h4a2 2 0 002-2M8 17H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3M8 17v2m8-2v2M3 11h18M7 7h.01M17 7h.01" />
             </svg>
             <span className="text-white font-bold text-sm">NashBus</span>
-            <span className="text-yellow-300 text-[10px] font-bold px-1.5 py-0.5 bg-yellow-300/15 rounded ml-1">
-              {dict.nav.driverPanel}
-            </span>
           </div>
           <LanguageSwitcher current={lang as Locale} />
         </div>

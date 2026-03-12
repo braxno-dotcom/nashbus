@@ -1,42 +1,80 @@
 "use client";
 
 import { useState } from "react";
-import { login, register } from "@/lib/auth-storage";
 
 type Dict = Awaited<ReturnType<typeof import("@/i18n/get-dictionary").getDictionary>>;
 
-export default function AuthForm({ dict, onLogin, sessionExpired = false }: { dict: Dict; onLogin: () => void; sessionExpired?: boolean }) {
-  const [mode, setMode] = useState<"login" | "register">("login");
+const DRIVER_PASS = "driver2026";
+const AUTH_KEY = "nashbus_driver_auth";
+const AUTH_SESSION_KEY = "nashbus_driver_auth_session";
+const DRIVER_INFO_KEY = "nashbus_driver_info";
+
+export interface DriverInfo {
+  id: string;
+  name: string;
+  phone: string;
+}
+
+export function getDriverAuth(): DriverInfo | null {
+  if (typeof window === "undefined") return null;
+  const remembered = localStorage.getItem(AUTH_KEY);
+  const session = sessionStorage.getItem(AUTH_SESSION_KEY);
+  if (remembered !== DRIVER_PASS && session !== DRIVER_PASS) return null;
+  const info = localStorage.getItem(DRIVER_INFO_KEY);
+  if (!info) return null;
+  try { return JSON.parse(info); } catch { return null; }
+}
+
+export function driverLogout() {
+  localStorage.removeItem(AUTH_KEY);
+  sessionStorage.removeItem(AUTH_SESSION_KEY);
+}
+
+export default function AuthForm({ dict, onLogin }: { dict: Dict; onLogin: () => void }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setSuccess("");
 
-    if (mode === "register") {
-      const result = register(name, phone, password);
-      if (result.ok) {
-        setSuccess(dict.auth.registered);
-        setMode("login");
-        setPhone(phone);
-        setPassword("");
-      } else {
-        setError(result.error === "exists" ? dict.auth.hasAccount : "Error");
+    if (password !== DRIVER_PASS) {
+      setError(dict.auth.wrongPassword);
+      return;
+    }
+
+    // Save auth
+    if (remember) {
+      localStorage.setItem(AUTH_KEY, DRIVER_PASS);
+    } else {
+      sessionStorage.setItem(AUTH_SESSION_KEY, DRIVER_PASS);
+    }
+
+    // Save/update driver info
+    const existing = localStorage.getItem(DRIVER_INFO_KEY);
+    let info: DriverInfo;
+    if (existing) {
+      try {
+        info = JSON.parse(existing);
+        if (name) info.name = name;
+        if (phone) info.phone = phone;
+      } catch {
+        info = { id: Date.now().toString(), name, phone };
       }
     } else {
-      const result = login(phone, password);
-      if (result.ok) {
-        onLogin();
-      } else {
-        setError(result.error === "notFound" ? dict.auth.notFound : dict.auth.wrongPassword);
-      }
+      info = { id: Date.now().toString(), name, phone };
     }
+    localStorage.setItem(DRIVER_INFO_KEY, JSON.stringify(info));
+
+    onLogin();
   }
+
+  // Check if we have saved info to pre-fill
+  const savedInfo = typeof window !== "undefined" ? localStorage.getItem(DRIVER_INFO_KEY) : null;
+  const hasSavedInfo = !!savedInfo;
 
   return (
     <div className="max-w-sm mx-auto py-8">
@@ -51,44 +89,33 @@ export default function AuthForm({ dict, onLogin, sessionExpired = false }: { di
           <p className="text-[10px] text-gray-400">{dict.auth.subtitle}</p>
         </div>
 
-        {sessionExpired && (
-          <div className="bg-amber-50 border border-amber-200 rounded px-3 py-1.5 mb-3 flex items-center gap-1.5">
-            <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-[10px] text-amber-700 font-medium">{dict.auth.sessionExpired}</p>
-          </div>
-        )}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded px-3 py-1.5 mb-3">
             <p className="text-[10px] text-red-600 font-medium">{error}</p>
           </div>
         )}
-        {success && (
-          <div className="bg-green-50 border border-green-200 rounded px-3 py-1.5 mb-3">
-            <p className="text-[10px] text-green-600 font-medium">{success}</p>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-2">
-          {mode === "register" && (
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={dict.auth.name}
-              required
-              className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
-            />
+          {!hasSavedInfo && (
+            <>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={dict.auth.name}
+                required
+                className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              />
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder={dict.auth.phone}
+                required
+                className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              />
+            </>
           )}
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder={dict.auth.phone}
-            required
-            className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
-          />
           <input
             type="password"
             value={password}
@@ -97,23 +124,22 @@ export default function AuthForm({ dict, onLogin, sessionExpired = false }: { di
             required
             className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
           />
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+              className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-[10px] text-gray-500">{(dict.auth as Record<string, string>).remember || "Remember me"}</span>
+          </label>
           <button
             type="submit"
             className="w-full bg-blue-600 text-white font-bold py-2.5 rounded-lg text-xs hover:bg-blue-700 active:scale-[0.98] transition-all"
           >
-            {mode === "login" ? dict.auth.login : dict.auth.register}
+            {dict.auth.login}
           </button>
         </form>
-
-        <p className="text-center text-[10px] text-gray-400 mt-3">
-          {mode === "login" ? dict.auth.noAccount : dict.auth.hasAccount}{" "}
-          <button
-            onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); setSuccess(""); }}
-            className="text-blue-600 font-semibold hover:underline"
-          >
-            {mode === "login" ? dict.auth.register : dict.auth.login}
-          </button>
-        </p>
       </div>
     </div>
   );
