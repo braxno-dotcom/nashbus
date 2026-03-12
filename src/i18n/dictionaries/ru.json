@@ -86,7 +86,10 @@
     "statsPaxTotal": "Всего через платформу",
     "copyList": "Скопировать список",
     "copied": "Скопировано!",
-    "sendWhatsApp": "Отправить в WhatsApp"
+    "sendWhatsApp": "Отправить в WhatsApp",
+    "repeatWeekly": "Повторять еженедельно",
+    "weeks": "нед.",
+    "repeatCreated": "Создано {n} рейсов"
   },
   "clients": {
     "title": "Мои клиенты (посылки)",

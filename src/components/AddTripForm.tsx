@@ -56,6 +56,8 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
   const [geoLoading, setGeoLoading] = useState(false);
+  const [repeatWeekly, setRepeatWeekly] = useState(false);
+  const [repeatWeeks, setRepeatWeeks] = useState("4");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const cities = dict.cities as Record<string, string>;
@@ -143,6 +145,17 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
       parcels: false,
     };
 
+    // Build array of routes (original + repeats)
+    const routes = [route];
+    if (repeatWeekly) {
+      const weeks = parseInt(repeatWeeks) || 4;
+      for (let i = 1; i <= weeks; i++) {
+        const d = new Date(date);
+        d.setDate(d.getDate() + 7 * i);
+        routes.push({ ...route, trip_date: d.toISOString().split("T")[0] });
+      }
+    }
+
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/routes`, {
         method: "POST",
@@ -152,17 +165,22 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
           "Content-Type": "application/json",
           "Prefer": "return=representation",
         },
-        body: JSON.stringify(route),
+        body: JSON.stringify(routes),
       });
 
       if (res.ok) {
-        alert(dict.driver.success);
+        const count = routes.length;
+        const successMsg = count > 1
+          ? `${dict.driver.success} (${driverDict.repeatCreated?.replace("{n}", String(count)) || count + " trips created"})`
+          : dict.driver.success;
+        alert(successMsg);
         setOpen(false);
         setFrom(""); setTo(""); setDate(""); setBusNumber("");
         setDeparture(""); setDuration("");
         setPrice(""); setSeats(""); setMaxSeats("20"); setPhone("");
         setWaypoints([]); setLogoUrl(""); setLogoPreview("");
         setAddress(""); setLat(""); setLng(""); setGeoStatus(""); setGeoOk(false);
+        setRepeatWeekly(false); setRepeatWeeks("4");
         onTripAdded?.();
       } else {
         const err = await res.text();
@@ -296,6 +314,30 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
                   <input type="date" value={date} onChange={(e) => setDate(e.target.value)} min={new Date().toISOString().split("T")[0]} required className="w-full px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500" />
                 </div>
                 <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={dict.driver.price} min="1" required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500 self-end" />
+              </div>
+
+              {/* Repeat weekly */}
+              <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={repeatWeekly}
+                    onChange={(e) => setRepeatWeekly(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-[10px] text-gray-600 font-medium">{driverDict.repeatWeekly || "Repeat weekly"}</span>
+                </label>
+                {repeatWeekly && (
+                  <select
+                    value={repeatWeeks}
+                    onChange={(e) => setRepeatWeeks(e.target.value)}
+                    className="px-2 py-1 rounded bg-white border border-gray-200 text-[10px] focus:outline-none focus:border-blue-500"
+                  >
+                    {[2, 3, 4, 5, 6, 7, 8].map((n) => (
+                      <option key={n} value={n}>{n} {driverDict.weeks || "weeks"}</option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               {/* Departure, duration */}

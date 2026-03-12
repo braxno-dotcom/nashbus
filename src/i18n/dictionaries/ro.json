@@ -86,7 +86,10 @@
     "statsPaxTotal": "Total prin platformă",
     "copyList": "Copiază lista",
     "copied": "Copiat!",
-    "sendWhatsApp": "Trimite pe WhatsApp"
+    "sendWhatsApp": "Trimite pe WhatsApp",
+    "repeatWeekly": "Repetă săptămânal",
+    "weeks": "săpt.",
+    "repeatCreated": "{n} curse create"
   },
   "clients": {
     "title": "Clienții mei (colete)",

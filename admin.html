@@ -167,6 +167,15 @@
             </div>
           </div>
         </div>
+        <div class="checkbox-row" style="margin-top:4px">
+          <input type="checkbox" id="f-repeat" onchange="document.getElementById('f-repeat-weeks').style.display=this.checked?'':'none';document.getElementById('f-repeat-label').style.display=this.checked?'':'none'">
+          <label for="f-repeat" data-i18n="f.repeat">Повторять еженедельно</label>
+          <select id="f-repeat-weeks" style="display:none;padding:2px 6px;border:1px solid #e5e7eb;border-radius:4px;font-size:11px;margin-left:4px">
+            <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option>
+            <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+          </select>
+          <span id="f-repeat-label" style="display:none;font-size:10px;color:#6b7280" data-i18n="f.repeatWeeks">нед.</span>
+        </div>
         <div class="grid-2">
           <div class="form-section"><label data-i18n="f.duration">В пути</label><input type="text" id="f-duration" placeholder="32h" required></div>
           <div class="form-section"><label data-i18n="f.price">Цена</label><input type="text" id="f-price" placeholder="€95" required></div>
@@ -310,7 +319,7 @@ var ADMIN_DICT = {
       addressHint: "Варшава, центральний вокзал", find: "📍 Знайти",
       lat: "Широта", lng: "Довгота", logo: "Логотип / фото автобуса", chooseLogo: "Обрати файл", removeLogo: "Видалити", amenities: "Зручності",
       power: "Розетки", ac: "Кондиціонер", toilet: "Туалет", luggage: "Багаж", pets: "Тварини",
-      parcels: "Приймає посилки", save: "Зберегти", cancel: "Скасувати" },
+      parcels: "Приймає посилки", save: "Зберегти", cancel: "Скасувати", repeat: "Повторювати щотижня", repeatWeeks: "тиж." },
     th: { carrier: "Перевізник", route: "Маршрут", stops: "Зупинки", date: "Дата", price: "Ціна", seats: "Місця", actions: "Дії" },
     booked: "Зайнято", free: "Вільно", of: "з",
     statsBtn: "Статистика", statsTrips: "Рейсів за місяць", statsPaxMonth: "Пасажирів за місяць", statsPaxTotal: "Всього через платформу",
@@ -335,7 +344,7 @@ var ADMIN_DICT = {
       addressHint: "Варшава, центральный вокзал", find: "📍 Найти",
       lat: "Широта", lng: "Долгота", logo: "Логотип / фото автобуса", chooseLogo: "Выбрать файл", removeLogo: "Удалить", amenities: "Удобства",
       power: "Розетки", ac: "Кондиционер", toilet: "Туалет", luggage: "Багаж", pets: "Животные",
-      parcels: "Принимает посылки", save: "Сохранить", cancel: "Отмена" },
+      parcels: "Принимает посылки", save: "Сохранить", cancel: "Отмена", repeat: "Повторять еженедельно", repeatWeeks: "нед." },
     th: { carrier: "Перевозчик", route: "Маршрут", stops: "Остановки", date: "Дата", price: "Цена", seats: "Места", actions: "Действия" },
     booked: "Занято", free: "Свободно", of: "из",
     statsBtn: "Статистика", statsTrips: "Рейсов за месяц", statsPaxMonth: "Пассажиров за месяц", statsPaxTotal: "Всего через платформу",
@@ -360,7 +369,7 @@ var ADMIN_DICT = {
       addressHint: "Varșovia, gara centrală", find: "📍 Caută",
       lat: "Latitudine", lng: "Longitudine", logo: "Logo / foto autobuz", chooseLogo: "Alege fișier", removeLogo: "Șterge", amenities: "Facilități",
       power: "Prize", ac: "Aer condiționat", toilet: "Toaletă", luggage: "Bagaj", pets: "Animale",
-      parcels: "Acceptă colete", save: "Salvează", cancel: "Anulare" },
+      parcels: "Acceptă colete", save: "Salvează", cancel: "Anulare", repeat: "Repetă săptămânal", repeatWeeks: "săpt." },
     th: { carrier: "Transportator", route: "Rută", stops: "Opriri", date: "Data", price: "Preț", seats: "Locuri", actions: "Acțiuni" },
     booked: "Ocupate", free: "Libere", of: "din",
     statsBtn: "Statistică", statsTrips: "Curse luna aceasta", statsPaxMonth: "Pasageri luna aceasta", statsPaxTotal: "Total prin platformă",
@@ -646,12 +655,28 @@ async function saveTrip(e) {
     trip.id = editId;
     await sbUpdateTrip(trip);
   } else {
-    await sbInsertTrip(trip);
+    var repeat = document.getElementById("f-repeat").checked;
+    var repeatWeeks = parseInt(document.getElementById("f-repeat-weeks").value) || 4;
+    if (repeat && !editId) {
+      var isoDate = document.getElementById("f-date").value;
+      for (var i = 0; i <= repeatWeeks; i++) {
+        var d = new Date(isoDate);
+        d.setDate(d.getDate() + 7 * i);
+        var copy = Object.assign({}, trip);
+        copy.date = toDmyDate(d.toISOString().split("T")[0]);
+        await sbInsertTrip(copy);
+      }
+    } else {
+      await sbInsertTrip(trip);
+    }
   }
   trips = await sbLoadTrips();
   bookingCounts = await sbLoadBookingCounts();
   cancelEdit();
   renderTable();
+  document.getElementById("f-repeat").checked = false;
+  document.getElementById("f-repeat-weeks").style.display = "none";
+  document.getElementById("f-repeat-label").style.display = "none";
 }
 
 function editTrip(id) {
