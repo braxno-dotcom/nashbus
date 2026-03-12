@@ -80,6 +80,7 @@
       <button class="pa-tab" onclick="switchTab('routes')">Все рейсы</button>
       <button class="pa-tab" onclick="switchTab('passengers')">Пассажиры</button>
       <button class="pa-tab" onclick="switchTab('messages')">Обращения</button>
+      <button class="pa-tab" onclick="switchTab('codes')">Коды</button>
     </div>
 
     <!-- Dashboard -->
@@ -147,6 +148,32 @@
       </div>
     </div>
 
+    <!-- Driver Codes -->
+    <div id="tab-codes" style="display:none">
+      <div class="pa-section">
+        <h3>Коды доступа водителей</h3>
+        <div style="background:#f9fafb;border-radius:8px;padding:12px;margin-bottom:12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <input type="text" id="code-driver-name" placeholder="Имя водителя" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px">
+            <input type="tel" id="code-driver-phone" placeholder="Телефон" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:8px">
+            <select id="code-duration" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px">
+              <option value="30">30 дней</option>
+              <option value="90">3 месяца</option>
+              <option value="180">6 месяцев</option>
+              <option value="365" selected>1 год</option>
+            </select>
+            <button onclick="createCode()" style="background:#2563eb;color:#fff;font-size:11px;font-weight:600;padding:6px 16px;border-radius:6px;border:none;cursor:pointer;white-space:nowrap">Создать код</button>
+          </div>
+        </div>
+        <table class="pa-table">
+          <thead><tr><th>Водитель</th><th>Код</th><th>Телефон</th><th>До</th><th>Статус</th><th>Действия</th></tr></thead>
+          <tbody id="codes-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -182,14 +209,15 @@ var MONTHS = ["Январь","Февраль","Март","Апрель","Май"
 
 // ==================== Tabs ====================
 function switchTab(name) {
-  ["dashboard","drivers","routes","passengers","messages"].forEach(function(t) {
+  ["dashboard","drivers","routes","passengers","messages","codes"].forEach(function(t) {
     document.getElementById("tab-" + t).style.display = t === name ? "" : "none";
   });
   document.querySelectorAll(".pa-tab").forEach(function(btn, i) {
-    var tabs = ["dashboard","drivers","routes","passengers","messages"];
+    var tabs = ["dashboard","drivers","routes","passengers","messages","codes"];
     btn.classList.toggle("active", tabs[i] === name);
   });
   if (name === "messages") renderMessages();
+  if (name === "codes") loadCodes();
 }
 
 // ==================== Load Data ====================
@@ -445,6 +473,99 @@ async function deleteMessage(id) {
   await sb.from("complaints").delete().eq("id", id);
   allMessages = allMessages.filter(function(m) { return m.id !== id; });
   renderMessages();
+}
+
+// ==================== Driver Codes ====================
+var allCodes = [];
+
+function generateCode() {
+  var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  var code = "";
+  for (var i = 0; i < 8; i++) {
+    if (i === 4) code += "-";
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+async function loadCodes() {
+  var { data, error } = await sb.from("driver_codes").select("*").order("created_at", { ascending: false });
+  allCodes = error ? [] : (data || []);
+  renderCodes();
+}
+
+function renderCodes() {
+  var tbody = document.getElementById("codes-tbody");
+  if (allCodes.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:20px;font-size:11px">Кодов пока нет</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allCodes.map(function(c) {
+    var now = new Date();
+    var exp = new Date(c.expires_at);
+    var isExpired = exp < now;
+    var isActive = c.is_active && !isExpired;
+    var statusColor = isActive ? "#16a34a" : "#dc2626";
+    var statusText = isActive ? "Активен" : (isExpired ? "Истёк" : "Отключён");
+    var expDate = exp.toLocaleDateString("ru-RU");
+    return '<tr>' +
+      '<td style="font-weight:600">' + c.driver_name + '</td>' +
+      '<td><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:11px;letter-spacing:1px">' + c.code + '</code>' +
+      ' <button onclick="copyCode(\'' + c.code + '\',this)" style="background:none;border:none;cursor:pointer;font-size:10px;color:#6b7280" title="Копировать">📋</button></td>' +
+      '<td>' + (c.phone || '—') + '</td>' +
+      '<td>' + expDate + '</td>' +
+      '<td><span style="color:' + statusColor + ';font-weight:600;font-size:10px">' + statusText + '</span></td>' +
+      '<td style="display:flex;gap:4px">' +
+      (c.is_active
+        ? '<button onclick="toggleCode(\'' + c.id + '\',false)" style="background:#fef2f2;color:#dc2626;font-size:10px;font-weight:600;padding:4px 8px;border-radius:4px;border:none;cursor:pointer">Откл.</button>'
+        : '<button onclick="toggleCode(\'' + c.id + '\',true)" style="background:#f0fdf4;color:#16a34a;font-size:10px;font-weight:600;padding:4px 8px;border-radius:4px;border:none;cursor:pointer">Вкл.</button>'
+      ) +
+      '<button onclick="deleteCode(\'' + c.id + '\')" style="background:#fef2f2;color:#dc2626;font-size:10px;font-weight:600;padding:4px 8px;border-radius:4px;border:none;cursor:pointer">✕</button>' +
+      '</td></tr>';
+  }).join("");
+}
+
+async function createCode() {
+  var name = document.getElementById("code-driver-name").value.trim();
+  var phone = document.getElementById("code-driver-phone").value.trim();
+  var days = parseInt(document.getElementById("code-duration").value) || 365;
+  if (!name) { alert("Введите имя водителя"); return; }
+
+  var code = generateCode();
+  var expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + days);
+
+  var { error } = await sb.from("driver_codes").insert({
+    code: code,
+    driver_name: name,
+    phone: phone,
+    expires_at: expiresAt.toISOString(),
+    is_active: true
+  });
+
+  if (error) { alert("Ошибка: " + error.message); return; }
+
+  document.getElementById("code-driver-name").value = "";
+  document.getElementById("code-driver-phone").value = "";
+  await loadCodes();
+}
+
+function copyCode(code, btn) {
+  navigator.clipboard.writeText(code);
+  var orig = btn.textContent;
+  btn.textContent = "✓";
+  setTimeout(function() { btn.textContent = orig; }, 1500);
+}
+
+async function toggleCode(id, active) {
+  await sb.from("driver_codes").update({ is_active: active }).eq("id", id);
+  await loadCodes();
+}
+
+async function deleteCode(id) {
+  if (!confirm("Удалить этот код доступа?")) return;
+  await sb.from("driver_codes").delete().eq("id", id);
+  await loadCodes();
 }
 
 // ==================== Init ====================

@@ -128,7 +128,10 @@
     "notFound": "Contul nu a fost găsit",
     "welcome": "Bun venit",
     "sessionExpired": "Sesiunea a expirat. Vă rugăm să vă conectați din nou.",
-    "remember": "Ține minte parola"
+    "remember": "Ține minte",
+    "codePlaceholder": "Cod de acces",
+    "codeHint": "Introduceți codul de acces primit de la administrator",
+    "codeExpired": "Codul a expirat"
   },
   "complaints": {
     "title": "Contactați adminul",
