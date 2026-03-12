@@ -1,0 +1,6 @@
+Платформа админа: https://braxno-dotcom.github.io/nashbus/platform.html
+Пароль: platform2026
+
+Кабинет водителя: https://braxno-dotcom.github.io/nashbus/uk/driver/
+
+Деплой статус: https://github.com/braxno-dotcom/nashbus/actions

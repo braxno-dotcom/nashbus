@@ -83,7 +83,10 @@
     "statistics": "Statistică",
     "statsTrips": "Curse luna aceasta",
     "statsPaxMonth": "Pasageri luna aceasta",
-    "statsPaxTotal": "Total prin platformă"
+    "statsPaxTotal": "Total prin platformă",
+    "copyList": "Copiază lista",
+    "copied": "Copiat!",
+    "sendWhatsApp": "Trimite pe WhatsApp"
   },
   "clients": {
     "title": "Clienții mei (colete)",

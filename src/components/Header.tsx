@@ -19,14 +19,6 @@ export default function Header({ lang, dict }: { lang: Locale; dict: Dict }) {
         </div>
         <div className="flex items-center gap-1">
           <ActiveLink
-            href={`${basePath}/${lang}/driver/`}
-            activeClass="bg-yellow-300 ring-1 ring-yellow-500"
-            defaultClass="bg-yellow-400 hover:bg-yellow-300"
-            className="text-gray-900 px-2 py-1 rounded text-[10px] font-bold transition-colors"
-          >
-            {dict.nav.driverPanel}
-          </ActiveLink>
-          <ActiveLink
             href={`${basePath}/${lang}/complaints/`}
             activeClass="bg-white/30 ring-1 ring-white/50"
             defaultClass="bg-white/15 hover:bg-white/25"

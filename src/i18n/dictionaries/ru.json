@@ -83,7 +83,10 @@
     "statistics": "Статистика",
     "statsTrips": "Рейсов за месяц",
     "statsPaxMonth": "Пассажиров за месяц",
-    "statsPaxTotal": "Всего через платформу"
+    "statsPaxTotal": "Всего через платформу",
+    "copyList": "Скопировать список",
+    "copied": "Скопировано!",
+    "sendWhatsApp": "Отправить в WhatsApp"
   },
   "clients": {
     "title": "Мои клиенты (посылки)",

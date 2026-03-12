@@ -313,7 +313,7 @@ var ADMIN_DICT = {
     th: { carrier: "Перевізник", route: "Маршрут", stops: "Зупинки", date: "Дата", price: "Ціна", seats: "Місця", actions: "Дії" },
     booked: "Зайнято", free: "Вільно", of: "з",
     statsBtn: "Статистика", statsTrips: "Рейсів за місяць", statsPaxMonth: "Пасажирів за місяць", statsPaxTotal: "Всього через платформу",
-    pax: { title: "Пасажири", name: "Прізвище та ім'я", phone: "Телефон", from: "Звідки", to: "Куди", seats: "Місць", add: "Додати пасажира", save: "Зберегти", empty: "Пасажирів поки немає", occupied: "Зайнято", ofTotal: "з" }
+    pax: { title: "Пасажири", name: "Прізвище та ім'я", phone: "Телефон", from: "Звідки", to: "Куди", seats: "Місць", add: "Додати пасажира", save: "Зберегти", empty: "Пасажирів поки немає", occupied: "Зайнято", ofTotal: "з", copyList: "Скопіювати список", copied: "Скопійовано!", sendWhatsApp: "WhatsApp" }
   },
   ru: {
     backToSite: "← На сайт",
@@ -337,7 +337,7 @@ var ADMIN_DICT = {
     th: { carrier: "Перевозчик", route: "Маршрут", stops: "Остановки", date: "Дата", price: "Цена", seats: "Места", actions: "Действия" },
     booked: "Занято", free: "Свободно", of: "из",
     statsBtn: "Статистика", statsTrips: "Рейсов за месяц", statsPaxMonth: "Пассажиров за месяц", statsPaxTotal: "Всего через платформу",
-    pax: { title: "Пассажиры", name: "Фамилия и имя", phone: "Телефон", from: "Откуда", to: "Куда", seats: "Мест", add: "Добавить пассажира", save: "Сохранить", empty: "Пассажиров пока нет", occupied: "Занято", ofTotal: "из" }
+    pax: { title: "Пассажиры", name: "Фамилия и имя", phone: "Телефон", from: "Откуда", to: "Куда", seats: "Мест", add: "Добавить пассажира", save: "Сохранить", empty: "Пассажиров пока нет", occupied: "Занято", ofTotal: "из", copyList: "Скопировать список", copied: "Скопировано!", sendWhatsApp: "WhatsApp" }
   },
   ro: {
     backToSite: "← Pe site",
@@ -361,7 +361,7 @@ var ADMIN_DICT = {
     th: { carrier: "Transportator", route: "Rută", stops: "Opriri", date: "Data", price: "Preț", seats: "Locuri", actions: "Acțiuni" },
     booked: "Ocupate", free: "Libere", of: "din",
     statsBtn: "Statistică", statsTrips: "Curse luna aceasta", statsPaxMonth: "Pasageri luna aceasta", statsPaxTotal: "Total prin platformă",
-    pax: { title: "Pasageri", name: "Nume și prenume", phone: "Telefon", from: "De unde", to: "Unde", seats: "Locuri", add: "Adaugă pasager", save: "Salvează", empty: "Nu sunt pasageri încă", occupied: "Ocupate", ofTotal: "din" }
+    pax: { title: "Pasageri", name: "Nume și prenume", phone: "Telefon", from: "De unde", to: "Unde", seats: "Locuri", add: "Adaugă pasager", save: "Salvează", empty: "Nu sunt pasageri încă", occupied: "Ocupate", ofTotal: "din", copyList: "Copiază lista", copied: "Copiat!", sendWhatsApp: "WhatsApp" }
   }
 };
 
@@ -823,7 +823,44 @@ function renderPaxList(trip) {
       '</div>' +
       '<button class="pax-del" onclick="deletePax(\'' + b.id + '\')" title="Delete">✕</button>' +
       '</div>';
-  }).join("");
+  }).join("") +
+  '<div style="display:flex;gap:6px;margin-top:8px">' +
+    '<button onclick="copyPaxList()" id="btn-copy-pax" style="flex:1;font-size:10px;font-weight:600;padding:6px 10px;border-radius:6px;border:1px solid #e5e7eb;background:#f9fafb;color:#374151;cursor:pointer">' + at("pax.copyList") + '</button>' +
+    '<button onclick="sendPaxWhatsApp()" style="flex:1;font-size:10px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:#22c55e;color:#fff;cursor:pointer">' + at("pax.sendWhatsApp") + '</button>' +
+  '</div>';
+}
+
+function buildPaxText() {
+  var trip = trips.find(function(t) { return t.id === paxRouteId; });
+  if (!trip || paxBookings.length === 0) return "";
+  var total = trip.totalSeats || trip.seats || 20;
+  var booked = paxBookings.reduce(function(s, b) { return s + (b.seats_count || 1); }, 0);
+  var header = trip.fromKey + " → " + trip.toKey + " (" + trip.date + ")";
+  var lines = paxBookings.map(function(b, i) {
+    var line = (i + 1) + ". " + b.passenger_name + " | " + b.phone;
+    if (b.seats_count > 1) line += " | x" + b.seats_count;
+    if (b.pickup_point && b.dropoff_point) line += " | " + b.pickup_point + " → " + b.dropoff_point;
+    return line;
+  });
+  return header + "\n" + lines.join("\n") + "\n" + booked + "/" + total;
+}
+
+function copyPaxList() {
+  var text = buildPaxText();
+  if (!text) return;
+  navigator.clipboard.writeText(text);
+  var btn = document.getElementById("btn-copy-pax");
+  var orig = btn.textContent;
+  btn.textContent = at("pax.copied");
+  btn.style.background = "#dcfce7";
+  btn.style.color = "#16a34a";
+  setTimeout(function() { btn.textContent = orig; btn.style.background = "#f9fafb"; btn.style.color = "#374151"; }, 2000);
+}
+
+function sendPaxWhatsApp() {
+  var text = buildPaxText();
+  if (!text) return;
+  window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
 }
 
 async function addPax() {
