@@ -63,7 +63,20 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
   const cities = dict.cities as Record<string, string>;
   const cityKeys = Object.keys(cities).sort((a, b) => cities[a].localeCompare(cities[b]));
   const driverDict = dict.driver as Record<string, string>;
-  const selectCity = (dict.clients as Record<string, string>).selectCity || "Select city";
+
+  // Reverse lookup: city translated name → key
+  function cityNameToKey(input: string): string {
+    if (!input.trim()) return "";
+    const lower = input.trim().toLowerCase();
+    // Check if it's already a key
+    if (cities[lower]) return lower;
+    // Find by translated name
+    for (const key of cityKeys) {
+      if (cities[key].toLowerCase() === lower) return key;
+    }
+    // Not found — use as-is (custom city)
+    return input.trim().toLowerCase().replace(/\s+/g, "_");
+  }
 
   function addWaypoint() {
     setWaypoints([...waypoints, ""]);
@@ -124,13 +137,13 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const filteredWaypoints = waypoints.filter((w) => w.trim() !== "");
+    const filteredWaypoints = waypoints.filter((w) => w.trim() !== "").map(cityNameToKey);
 
     const route = {
       carrier_id: driverId,
       carrier: driverName,
-      from_key: from,
-      to_key: to,
+      from_key: cityNameToKey(from),
+      to_key: cityNameToKey(to),
       trip_date: date,
       departure: departure || "",
       arrival: "",
@@ -251,20 +264,33 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
                 />
               </div>
 
-              {/* City selectors */}
+              {/* City inputs with suggestions */}
+              <datalist id="city-list">
+                {cityKeys.map((key) => (
+                  <option key={key} value={cities[key]} />
+                ))}
+              </datalist>
               <div className="grid grid-cols-2 gap-2">
-                <select value={from} onChange={(e) => setFrom(e.target.value)} required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500">
-                  <option value="">{dict.driver.from}</option>
-                  {cityKeys.map((key) => (
-                    <option key={key} value={key}>{cities[key]}</option>
-                  ))}
-                </select>
-                <select value={to} onChange={(e) => setTo(e.target.value)} required className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500">
-                  <option value="">{dict.driver.to}</option>
-                  {cityKeys.map((key) => (
-                    <option key={key} value={key}>{cities[key]}</option>
-                  ))}
-                </select>
+                <input
+                  type="text"
+                  list="city-list"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                  placeholder={dict.driver.from as string}
+                  required
+                  autoComplete="off"
+                  className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                />
+                <input
+                  type="text"
+                  list="city-list"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                  placeholder={dict.driver.to as string}
+                  required
+                  autoComplete="off"
+                  className="px-2 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                />
               </div>
 
               {/* Waypoints */}
@@ -276,16 +302,15 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
                   <div key={i} className="flex gap-1.5">
                     <div className="flex items-center gap-1 flex-1">
                       <span className="text-[9px] text-gray-400 shrink-0 w-4 text-center">{i + 1}.</span>
-                      <select
+                      <input
+                        type="text"
+                        list="city-list"
                         value={wp}
                         onChange={(e) => updateWaypoint(i, e.target.value)}
-                        className="flex-1 px-2 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500"
-                      >
-                        <option value="">{selectCity}</option>
-                        {cityKeys.map((key) => (
-                          <option key={key} value={key}>{cities[key]}</option>
-                        ))}
-                      </select>
+                        placeholder={driverDict.waypointCity || "City"}
+                        autoComplete="off"
+                        className="flex-1 px-2 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                      />
                     </div>
                     <button
                       type="button"
