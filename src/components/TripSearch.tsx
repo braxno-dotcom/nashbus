@@ -13,11 +13,35 @@ function normalize(s: string): string {
   return s.toLowerCase().trim();
 }
 
+// All city names across all 3 languages for robust matching
+const ALL_CITY_NAMES: Record<string, string[]> = {
+  paris:["Париж","Париж","Paris"],chernivtsi:["Чернівці","Черновцы","Cernăuți"],madrid:["Мадрид","Мадрид","Madrid"],kyiv:["Київ","Киев","Kiev"],chisinau:["Кишинів","Кишинёв","Chișinău"],odesa:["Одеса","Одесса","Odesa"],berlin:["Берлін","Берлин","Berlin"],lviv:["Львів","Львов","Liov"],warsaw:["Варшава","Варшава","Varșovia"],prague:["Прага","Прага","Praga"],krakow:["Краків","Краков","Cracovia"],bratislava:["Братислава","Братислава","Bratislava"],budapest:["Будапешт","Будапешт","Budapesta"],vienna:["Відень","Вена","Viena"],munich:["Мюнхен","Мюнхен","München"],nuremberg:["Нюрнберг","Нюрнберг","Nürnberg"],frankfurt:["Франкфурт","Франкфурт","Frankfurt"],strasbourg:["Страсбург","Страсбург","Strasbourg"],katowice:["Катовіце","Катовице","Katowice"],wroclaw:["Вроцлав","Вроцлав","Wrocław"],ternopil:["Тернопіль","Тернополь","Ternopil"],ivanofrankivsk:["Івано-Франківськ","Ивано-Франковск","Ivano-Frankivsk"],vinnytsya:["Вінниця","Винница","Vinnița"],zhytomyr:["Житомир","Житомир","Jîtomîr"],lublin:["Люблін","Люблин","Lublin"],rzeszow:["Жешув","Жешув","Rzeszów"],dnipro:["Дніпро","Днепр","Dnipro"],mykolaiv:["Миколаїв","Николаев","Mîkolaiv"],tiraspol:["Тирасполь","Тирасполь","Tiraspol"],iasi:["Ясси","Яссы","Iași"],suceava:["Сучава","Сучава","Suceava"],siret:["Сірет","Сирет","Siret"],
+};
+
+// Reverse map: any city name (lowercase) → canonical key
+const CITY_NAME_TO_KEY: Record<string, string> = {};
+for (const [key, names] of Object.entries(ALL_CITY_NAMES)) {
+  CITY_NAME_TO_KEY[key] = key;
+  for (const name of names) {
+    CITY_NAME_TO_KEY[name.toLowerCase()] = key;
+  }
+}
+
+function resolveKey(cityKey: string): string {
+  return CITY_NAME_TO_KEY[cityKey.toLowerCase()] || cityKey;
+}
+
 function matchesCity(query: string, cityKey: string, cities: Record<string, string>): boolean {
   if (!query) return true;
   const q = normalize(query);
-  const translated = cities[cityKey] || "";
-  return normalize(cityKey).includes(q) || normalize(translated).includes(q);
+  // Resolve the key (handles cases where key is a city name like "берлин")
+  const resolved = resolveKey(cityKey);
+  const translated = cities[resolved] || cities[cityKey] || "";
+  const allNames = ALL_CITY_NAMES[resolved] || [];
+  return normalize(resolved).includes(q) ||
+    normalize(cityKey).includes(q) ||
+    normalize(translated).includes(q) ||
+    allNames.some(n => normalize(n).includes(q));
 }
 
 interface RouteRow {

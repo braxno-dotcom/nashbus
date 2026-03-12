@@ -64,18 +64,34 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
   const cityKeys = Object.keys(cities).sort((a, b) => cities[a].localeCompare(cities[b]));
   const driverDict = dict.driver as Record<string, string>;
 
-  // Reverse lookup: city translated name → key
+  // All city names across all languages → key
+  const allCityNames: Record<string, string> = {};
+  for (const key of cityKeys) {
+    allCityNames[key] = key; // key itself
+  }
+  // Build from all 3 language dictionaries
+  const ALL_CITIES: Record<string, Record<string, string>> = {
+    uk: {"paris":"Париж","chernivtsi":"Чернівці","madrid":"Мадрид","kyiv":"Київ","chisinau":"Кишинів","odesa":"Одеса","berlin":"Берлін","lviv":"Львів","warsaw":"Варшава","prague":"Прага","krakow":"Краків","bratislava":"Братислава","budapest":"Будапешт","vienna":"Відень","munich":"Мюнхен","nuremberg":"Нюрнберг","frankfurt":"Франкфурт","strasbourg":"Страсбург","katowice":"Катовіце","wroclaw":"Вроцлав","ternopil":"Тернопіль","ivanofrankivsk":"Івано-Франківськ","vinnytsya":"Вінниця","zhytomyr":"Житомир","lublin":"Люблін","rzeszow":"Жешув","dnipro":"Дніпро","mykolaiv":"Миколаїв","tiraspol":"Тирасполь","iasi":"Ясси","suceava":"Сучава","siret":"Сірет"},
+    ru: {"paris":"Париж","chernivtsi":"Черновцы","madrid":"Мадрид","kyiv":"Киев","chisinau":"Кишинёв","odesa":"Одесса","berlin":"Берлин","lviv":"Львов","warsaw":"Варшава","prague":"Прага","krakow":"Краков","bratislava":"Братислава","budapest":"Будапешт","vienna":"Вена","munich":"Мюнхен","nuremberg":"Нюрнберг","frankfurt":"Франкфурт","strasbourg":"Страсбург","katowice":"Катовице","wroclaw":"Вроцлав","ternopil":"Тернополь","ivanofrankivsk":"Ивано-Франковск","vinnytsya":"Винница","zhytomyr":"Житомир","lublin":"Люблин","rzeszow":"Жешув","dnipro":"Днепр","mykolaiv":"Николаев","tiraspol":"Тирасполь","iasi":"Яссы","suceava":"Сучава","siret":"Сирет"},
+    ro: {"paris":"Paris","chernivtsi":"Cernăuți","madrid":"Madrid","kyiv":"Kiev","chisinau":"Chișinău","odesa":"Odesa","berlin":"Berlin","lviv":"Liov","warsaw":"Varșovia","prague":"Praga","krakow":"Cracovia","bratislava":"Bratislava","budapest":"Budapesta","vienna":"Viena","munich":"München","nuremberg":"Nürnberg","frankfurt":"Frankfurt","strasbourg":"Strasbourg","katowice":"Katowice","wroclaw":"Wrocław","ternopil":"Ternopil","ivanofrankivsk":"Ivano-Frankivsk","vinnytsya":"Vinnița","zhytomyr":"Jîtomîr","lublin":"Lublin","rzeszow":"Rzeszów","dnipro":"Dnipro","mykolaiv":"Mîkolaiv","tiraspol":"Tiraspol","iasi":"Iași","suceava":"Suceava","siret":"Siret"},
+  };
+  for (const langCities of Object.values(ALL_CITIES)) {
+    for (const [key, name] of Object.entries(langCities)) {
+      allCityNames[name.toLowerCase()] = key;
+    }
+  }
+
   function cityNameToKey(input: string): string {
     if (!input.trim()) return "";
     const lower = input.trim().toLowerCase();
-    // Check if it's already a key
-    if (cities[lower]) return lower;
-    // Find by translated name
-    for (const key of cityKeys) {
-      if (cities[key].toLowerCase() === lower) return key;
+    // Check exact match across all languages
+    if (allCityNames[lower]) return allCityNames[lower];
+    // Partial match
+    for (const [name, key] of Object.entries(allCityNames)) {
+      if (name.includes(lower) || lower.includes(name)) return key;
     }
     // Not found — use as-is (custom city)
-    return input.trim().toLowerCase().replace(/\s+/g, "_");
+    return lower.replace(/\s+/g, "_");
   }
 
   function addWaypoint() {
