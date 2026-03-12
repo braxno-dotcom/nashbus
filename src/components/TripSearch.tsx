@@ -158,19 +158,28 @@ export default function TripSearch({ dict }: { dict: Dict }) {
       <section id="search" className="px-4 -mt-5 relative z-10">
         <div className="max-w-5xl mx-auto">
           <form onSubmit={handleSearch} className="bg-white rounded-xl shadow-md p-3 border border-gray-100">
+            <datalist id="search-cities">
+              {Object.entries(cities).sort((a, b) => a[1].localeCompare(b[1])).map(([, name]) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
             <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="text"
+                list="search-cities"
                 value={searchFrom}
                 onChange={(e) => setSearchFrom(e.target.value)}
                 placeholder={dict.search.from}
+                autoComplete="off"
                 className="flex-1 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 text-xs focus:outline-none focus:border-blue-500 transition-all"
               />
               <input
                 type="text"
+                list="search-cities"
                 value={searchTo}
                 onChange={(e) => setSearchTo(e.target.value)}
                 placeholder={dict.search.to}
+                autoComplete="off"
                 className="flex-1 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 text-xs focus:outline-none focus:border-blue-500 transition-all"
               />
               <input
