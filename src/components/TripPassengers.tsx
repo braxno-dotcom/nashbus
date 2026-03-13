@@ -24,6 +24,12 @@ interface RouteInfo {
   to_key: string;
   trip_date: string;
   total_seats: number;
+  departure: string;
+  arrival: string;
+  duration: string;
+  price: string;
+  phone: string;
+  waypoints: string[];
 }
 
 async function sbFetch(path: string, options?: RequestInit) {
@@ -64,9 +70,9 @@ export default function TripPassengers({ dict, driverId, refreshKey = 0, company
       if (companyDriverIds && companyDriverIds.length > 0) {
         // Dispatcher: load routes for all company drivers
         const ids = companyDriverIds.map(id => `"${id}"`).join(",");
-        url = `routes?carrier_id=in.(${ids})&select=id,carrier,from_key,to_key,trip_date,total_seats&order=trip_date.desc`;
+        url = `routes?carrier_id=in.(${ids})&select=id,carrier,from_key,to_key,trip_date,total_seats,departure,arrival,duration,price,phone,waypoints&order=trip_date.desc`;
       } else {
-        url = `routes?carrier_id=eq.${driverId}&select=id,carrier,from_key,to_key,trip_date,total_seats&order=trip_date.desc`;
+        url = `routes?carrier_id=eq.${driverId}&select=id,carrier,from_key,to_key,trip_date,total_seats,departure,arrival,duration,price,phone,waypoints&order=trip_date.desc`;
       }
       const data = await sbFetch(url);
       if (data) setRoutes(data);
@@ -211,8 +217,31 @@ export default function TripPassengers({ dict, driverId, refreshKey = 0, company
         <p className="text-[10px] text-gray-400 mb-2">{driverDict.noPassengers}</p>
       )}
 
-      {selectedRoute && (
+      {selectedRoute && currentRoute && (
         <>
+          {/* Trip details */}
+          <div className="bg-gray-50 rounded-lg p-2.5 mb-2 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-gray-800">
+                {cities[currentRoute.from_key] || currentRoute.from_key} → {cities[currentRoute.to_key] || currentRoute.to_key}
+              </span>
+              <span className="text-[10px] font-semibold text-blue-600">{currentRoute.price ? `${currentRoute.price} €` : ""}</span>
+            </div>
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-gray-500">
+              <span>📅 {currentRoute.trip_date}</span>
+              {currentRoute.departure && <span>🕐 {currentRoute.departure}{currentRoute.arrival ? ` → ${currentRoute.arrival}` : ""}</span>}
+              {currentRoute.duration && <span>⏱ {currentRoute.duration}</span>}
+              {currentRoute.phone && <span>📞 {currentRoute.phone}</span>}
+            </div>
+            {currentRoute.waypoints && currentRoute.waypoints.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {currentRoute.waypoints.map((wp, i) => (
+                  <span key={i} className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">{cities[wp] || wp}</span>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Seats info + actions */}
           <div className="flex items-center justify-between mb-2">
             {seatsLeft > 0 ? (

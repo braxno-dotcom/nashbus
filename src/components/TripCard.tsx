@@ -122,7 +122,7 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
         </div>
         <div className="flex flex-col items-center px-1 shrink-0">
           <span className="text-gray-300 text-xs">&rarr;</span>
-          <span className="text-[9px] text-gray-400">{trip.duration}</span>
+          {trip.duration && <span className="text-[9px] text-gray-400">{(dict.trips as Record<string, string>).duration || "В пути"}: {trip.duration}</span>}
         </div>
         <div className="flex-1 min-w-0 text-right">
           <p className="text-[10px] text-gray-400">{trip.arrival}</p>
