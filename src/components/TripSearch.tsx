@@ -46,6 +46,7 @@ function matchesCity(query: string, cityKey: string, cities: Record<string, stri
 
 interface RouteRow {
   id: string;
+  carrier_id: string;
   carrier: string;
   from_key: string;
   to_key: string;
@@ -69,10 +70,11 @@ interface BookingCount {
   total: number;
 }
 
-function rowToTrip(row: RouteRow, bookedSeats: number): Trip {
+function rowToTrip(row: RouteRow, bookedSeats: number, companyName?: string): Trip {
   return {
     id: row.id,
     carrier: row.carrier,
+    companyName: companyName || "",
     fromKey: row.from_key,
     toKey: row.to_key,
     date: row.trip_date,
@@ -122,6 +124,19 @@ export default function TripSearch({ dict }: { dict: Dict }) {
       });
       const rows: RouteRow[] = res.ok ? await res.json() : [];
 
+      // Fetch company names for drivers
+      const dcRes = await fetch(`${SUPABASE_URL}/rest/v1/driver_codes?select=id,company_id&company_id=not.is.null`, {
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+        },
+      });
+      const driverCompanies: { id: string; company_id: string }[] = dcRes.ok ? await dcRes.json() : [];
+      const companyMap: Record<string, string> = {};
+      for (const dc of driverCompanies) {
+        companyMap[dc.id] = dc.company_id;
+      }
+
       // Fetch booking counts
       const bRes = await fetch(`${SUPABASE_URL}/rest/v1/bookings?select=route_id,seats_count`, {
         headers: {
@@ -139,7 +154,7 @@ export default function TripSearch({ dict }: { dict: Dict }) {
 
       // Filter by search
       const filtered = rows
-        .map((row) => rowToTrip(row, bookedMap[row.id] || 0))
+        .map((row) => rowToTrip(row, bookedMap[row.id] || 0, companyMap[row.carrier_id]))
         .filter((trip) => {
           const fullRoute = [trip.fromKey, ...(trip.waypoints || []), trip.toKey];
 

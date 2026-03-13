@@ -10,6 +10,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 interface Trip {
   id: string;
   carrier: string;
+  companyName?: string;
   fromKey: string;
   toKey: string;
   date: string;
@@ -108,7 +109,12 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
           )}
           <div>
             <p className="text-xs font-semibold text-gray-800">{trip.carrier}</p>
-            <p className="text-[10px] text-gray-400">{trip.date}</p>
+            <div className="flex items-center gap-1.5">
+              {trip.companyName && (
+                <span className="text-[9px] bg-purple-50 text-purple-600 font-semibold px-1 py-px rounded">{trip.companyName}</span>
+              )}
+              <p className="text-[10px] text-gray-400">{trip.date}</p>
+            </div>
           </div>
         </div>
         <span className="text-sm font-bold text-blue-600">{trip.price}</span>
