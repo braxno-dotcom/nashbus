@@ -64,7 +64,7 @@ export async function addFreightListing(
       body: JSON.stringify({
         listing_type: data.listingType,
         from_city: data.fromCity,
-        to_city: data.toCity,
+        to_city: data.toCity || "",
         trip_date: data.tripDate || null,
         description: data.description,
         weight_size: data.weightSize,

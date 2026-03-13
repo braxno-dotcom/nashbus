@@ -119,26 +119,33 @@ export default function FreightBoard({ dict }: { dict: Dict }) {
         </datalist>
 
         <div className="grid grid-cols-2 gap-2">
-          <input
-            type="text"
-            list="freight-cities"
-            value={fromCity}
-            onChange={(e) => setFromCity(e.target.value)}
-            placeholder={f.from}
-            required
-            autoComplete="off"
-            className={inputClass}
-          />
-          <input
-            type="text"
-            list="freight-cities"
-            value={toCity}
-            onChange={(e) => setToCity(e.target.value)}
-            placeholder={f.to}
-            required
-            autoComplete="off"
-            className={inputClass}
-          />
+          <div>
+            <input
+              type="text"
+              list="freight-cities"
+              value={fromCity}
+              onChange={(e) => setFromCity(e.target.value)}
+              placeholder={activeTab === "offer_carrier" ? f.fromHint : f.from}
+              required
+              autoComplete="off"
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <input
+              type="text"
+              list="freight-cities"
+              value={toCity}
+              onChange={(e) => setToCity(e.target.value)}
+              placeholder={activeTab === "offer_carrier" ? f.toHint : f.to}
+              required={activeTab === "seek_carrier"}
+              autoComplete="off"
+              className={inputClass}
+            />
+            {activeTab === "offer_carrier" && (
+              <p className="text-[9px] text-gray-400 mt-0.5 ml-1">{f.dateOptional}</p>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
