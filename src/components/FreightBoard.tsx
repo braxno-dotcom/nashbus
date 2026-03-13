@@ -142,14 +142,19 @@ export default function FreightBoard({ dict }: { dict: Dict }) {
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <input
-            type="date"
-            value={tripDate}
-            onChange={(e) => setTripDate(e.target.value)}
-            min={new Date().toISOString().split("T")[0]}
-            required
-            className={inputClass}
-          />
+          <div>
+            <input
+              type="date"
+              value={tripDate}
+              onChange={(e) => setTripDate(e.target.value)}
+              min={new Date().toISOString().split("T")[0]}
+              required={activeTab === "seek_carrier"}
+              className={inputClass}
+            />
+            {activeTab === "offer_carrier" && (
+              <p className="text-[9px] text-gray-400 mt-0.5 ml-1">{f.dateOptional}</p>
+            )}
+          </div>
           <input
             type="text"
             value={contactName}

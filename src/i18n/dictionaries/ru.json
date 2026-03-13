@@ -202,6 +202,7 @@
     "from": "Откуда",
     "to": "Куда",
     "date": "Дата",
+    "dateOptional": "необязательно",
     "description": "Описание груза",
     "weightSize": "Вес / габариты",
     "vehicleType": "Тип транспорта",

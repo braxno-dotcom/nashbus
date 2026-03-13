@@ -63,7 +63,7 @@ export async function addFreightListing(
         listing_type: data.listingType,
         from_city: data.fromCity,
         to_city: data.toCity,
-        trip_date: data.tripDate,
+        trip_date: data.tripDate || null,
         description: data.description,
         weight_size: data.weightSize,
         vehicle_type: data.vehicleType,
