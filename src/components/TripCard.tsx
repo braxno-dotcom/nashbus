@@ -109,10 +109,10 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
             </div>
           )}
           <div>
-            <p className="text-xs font-semibold text-gray-800">{trip.carrier}</p>
+            <p className="text-xs font-semibold text-gray-800">{trip.companyName || trip.carrier}</p>
             <div className="flex items-center gap-1.5">
               {trip.companyName && (
-                <span className="text-[9px] bg-purple-50 text-purple-600 font-semibold px-1 py-px rounded">{trip.companyName}</span>
+                <span className="text-[9px] bg-gray-100 text-gray-500 font-medium px-1 py-px rounded">{trip.carrier}</span>
               )}
               <p className="text-[10px] text-gray-400">{trip.date}</p>
             </div>
