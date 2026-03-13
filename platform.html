@@ -187,11 +187,11 @@
 (function() {
   var KEY = "nashbus_platform_auth";
   var PASS = "platform2026";
-  var saved = sessionStorage.getItem(KEY);
+  var saved = localStorage.getItem(KEY);
   if (saved === PASS) return;
   var input = prompt("Пароль для панели управления платформой:");
   if (input === PASS) {
-    sessionStorage.setItem(KEY, PASS);
+    localStorage.setItem(KEY, PASS);
   } else {
     alert("Неверный пароль");
     window.location.href = "index.html";

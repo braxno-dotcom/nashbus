@@ -90,8 +90,29 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
       setDriverId(info.id);
       setDriverName(info.name);
       setDriverRole(info.role || "driver");
+      setCompanyId(info.companyId);
       const saved = localStorage.getItem(`${LOGO_KEY}_${info.id}`);
       if (saved) setLogoUrl(saved);
+      // Check Telegram connection
+      fetch(`${SUPABASE_URL}/rest/v1/driver_codes?id=eq.${info.id}&select=telegram_chat_id`, {
+        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+      }).then(r => r.json()).then(data => {
+        if (data?.[0]?.telegram_chat_id) setTgConnected(true);
+      }).catch(() => {});
+      // If dispatcher, load company drivers
+      if (info.role === "dispatcher" && info.companyId) {
+        fetch(`${SUPABASE_URL}/rest/v1/driver_codes?company_id=eq.${encodeURIComponent(info.companyId)}&is_active=eq.true&select=id,driver_name,role`, {
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+        }).then(r => r.json()).then(data => {
+          if (data) {
+            setCompanyDriverIds(data.map((d: { id: string }) => d.id));
+            const drivers = data
+              .filter((d: { role?: string }) => d.role !== "dispatcher")
+              .map((d: { id: string; driver_name: string }) => ({ id: d.id, name: d.driver_name }));
+            setCompanyDrivers(drivers);
+          }
+        }).catch(() => {});
+      }
     }
   }
 
