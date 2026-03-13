@@ -4,6 +4,9 @@ import Header from "@/components/Header";
 import TripSearch from "@/components/TripSearch";
 import AdSlot from "@/components/AdSlot";
 
+const isProd = process.env.NODE_ENV === "production";
+const basePath = isProd ? "/nashbus" : "";
+
 export default async function Home({
   params,
 }: {
@@ -33,6 +36,15 @@ export default async function Home({
               {dict.actions.sendParcel}
             </a>
           </div>
+          <a
+            href={`${basePath}/${lang}/freight/`}
+            className="inline-flex items-center gap-1.5 mt-3 bg-amber-500 text-white font-bold py-2 px-5 rounded-lg text-xs hover:bg-amber-600 active:scale-[0.97] transition-all shadow-lg shadow-amber-500/30 border border-amber-400"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 17a2 2 0 002 2h4a2 2 0 002-2M8 17H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3M8 17v2m8-2v2M3 11h18M7 7h.01M17 7h.01" />
+            </svg>
+            {(dict.freight as Record<string, string>).button}
+          </a>
         </div>
       </section>
 
