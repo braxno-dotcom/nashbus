@@ -25,15 +25,23 @@ async function uploadLogo(file: File): Promise<string | null> {
   return `${SUPABASE_URL}/storage/v1/object/public/logos/${fileName}`;
 }
 
+interface CompanyDriver {
+  id: string;
+  name: string;
+}
+
 interface AddTripFormProps {
   dict: Dict;
   driverId: string;
   driverName: string;
   driverLogoUrl?: string;
   onTripAdded?: () => void;
+  companyDrivers?: CompanyDriver[];
 }
 
-export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl, onTripAdded }: AddTripFormProps) {
+export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl, onTripAdded, companyDrivers }: AddTripFormProps) {
+  const [selectedDriverId, setSelectedDriverId] = useState(companyDrivers?.[0]?.id || driverId);
+  const [selectedDriverName, setSelectedDriverName] = useState(companyDrivers?.[0]?.name || driverName);
   const [open, setOpen] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -156,8 +164,8 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
     const filteredWaypoints = waypoints.filter((w) => w.trim() !== "").map(cityNameToKey);
 
     const route = {
-      carrier_id: driverId,
-      carrier: driverName,
+      carrier_id: companyDrivers ? selectedDriverId : driverId,
+      carrier: companyDrivers ? selectedDriverName : driverName,
       from_key: cityNameToKey(from),
       to_key: cityNameToKey(to),
       trip_date: date,
@@ -246,6 +254,24 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
             </div>
             <p className="text-[11px] text-gray-500 mb-3">{dict.driver.subtitle}</p>
             <form onSubmit={handleSubmit} className="space-y-2">
+              {/* Driver selector for dispatcher */}
+              {companyDrivers && companyDrivers.length > 0 && (
+                <div>
+                  <p className="text-[10px] text-gray-500 mb-0.5">Водитель:</p>
+                  <select
+                    value={selectedDriverId}
+                    onChange={(e) => {
+                      const d = companyDrivers.find(d => d.id === e.target.value);
+                      if (d) { setSelectedDriverId(d.id); setSelectedDriverName(d.name); }
+                    }}
+                    className="w-full px-3 py-2 rounded-lg bg-purple-50 border border-purple-200 text-xs font-semibold text-purple-800 focus:outline-none focus:border-purple-500"
+                  >
+                    {companyDrivers.map((d) => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               {/* Logo upload */}
               <div className="flex items-center gap-3">
                 <div

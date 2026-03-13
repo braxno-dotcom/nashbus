@@ -203,7 +203,7 @@ export default function TripPassengers({ dict, driverId, refreshKey = 0, company
           <option value="">-- {dict.driver.from} → {dict.driver.to} --</option>
           {routes.map((r) => (
             <option key={r.id} value={r.id}>
-              {cities[r.from_key] || r.from_key} → {cities[r.to_key] || r.to_key} ({r.trip_date})
+              {companyDriverIds ? `[${r.carrier}] ` : ""}{cities[r.from_key] || r.from_key} → {cities[r.to_key] || r.to_key} ({r.trip_date})
             </option>
           ))}
         </select>

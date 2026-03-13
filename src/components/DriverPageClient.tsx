@@ -44,6 +44,8 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
   const [tgStatus, setTgStatus] = useState<"idle" | "checking" | "connected" | "not_found">("idle");
   const [driverRole, setDriverRole] = useState("driver");
   const [companyDriverIds, setCompanyDriverIds] = useState<string[]>([]);
+  const [companyDrivers, setCompanyDrivers] = useState<{ id: string; name: string }[]>([]);
+  const [companyId, setCompanyId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -61,12 +63,20 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
       }).then(r => r.json()).then(data => {
         if (data?.[0]?.telegram_chat_id) setTgConnected(true);
       }).catch(() => {});
+      setCompanyId(info.companyId);
       // If dispatcher, load all company driver IDs
       if (info.role === "dispatcher" && info.companyId) {
-        fetch(`${SUPABASE_URL}/rest/v1/driver_codes?company_id=eq.${encodeURIComponent(info.companyId)}&is_active=eq.true&select=id,driver_name`, {
+        fetch(`${SUPABASE_URL}/rest/v1/driver_codes?company_id=eq.${encodeURIComponent(info.companyId)}&is_active=eq.true&select=id,driver_name,role`, {
           headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
         }).then(r => r.json()).then(data => {
-          if (data) setCompanyDriverIds(data.map((d: { id: string }) => d.id));
+          if (data) {
+            setCompanyDriverIds(data.map((d: { id: string }) => d.id));
+            // Only actual drivers (not dispatchers) for trip assignment
+            const drivers = data
+              .filter((d: { role?: string }) => d.role !== "dispatcher")
+              .map((d: { id: string; driver_name: string }) => ({ id: d.id, name: d.driver_name }));
+            setCompanyDrivers(drivers);
+          }
         }).catch(() => {});
       }
     }
@@ -173,6 +183,12 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
             </div>
             <div>
               <p className="text-xs font-bold text-gray-800">{dict.auth.welcome}, {driverName}!</p>
+              {driverRole === "dispatcher" && (
+                <span className="text-[9px] bg-purple-100 text-purple-700 font-semibold px-1.5 py-0.5 rounded">Диспетчер</span>
+              )}
+              {driverRole === "driver" && companyId && (
+                <span className="text-[9px] bg-blue-100 text-blue-700 font-semibold px-1.5 py-0.5 rounded">Водитель компании</span>
+              )}
             </div>
           </div>
           <button
@@ -248,7 +264,12 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
       )}
 
       <StatsModal dict={dict} driverId={driverId} lang={lang} />
-      <AddTripForm dict={dict} driverId={driverId} driverName={driverName} driverLogoUrl={logoUrl} onTripAdded={() => setTripRefresh(prev => prev + 1)} />
+      {/* Dispatcher: can add trips for any company driver. Private driver: adds own trips. Company driver: no add form */}
+      {driverRole === "dispatcher" ? (
+        <AddTripForm dict={dict} driverId={driverId} driverName={driverName} driverLogoUrl={logoUrl} onTripAdded={() => setTripRefresh(prev => prev + 1)} companyDrivers={companyDrivers} />
+      ) : !(driverRole === "driver" && companyId) ? (
+        <AddTripForm dict={dict} driverId={driverId} driverName={driverName} driverLogoUrl={logoUrl} onTripAdded={() => setTripRefresh(prev => prev + 1)} />
+      ) : null}
       <TripPassengers dict={dict} driverId={driverId} refreshKey={tripRefresh} companyDriverIds={driverRole === "dispatcher" ? companyDriverIds : undefined} />
 
       {/* Divider */}
