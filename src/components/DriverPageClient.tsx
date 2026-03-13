@@ -122,6 +122,12 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
     setDriverId("");
     setDriverName("");
     setLogoUrl("");
+    setDriverRole("driver");
+    setCompanyId(null);
+    setCompanyDriverIds([]);
+    setCompanyDrivers([]);
+    setTgConnected(false);
+    setTgStatus("idle");
   }
 
   async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -285,12 +291,13 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
       )}
 
       <StatsModal dict={dict} driverId={driverId} lang={lang} />
-      {/* Dispatcher: can add trips for any company driver. Private driver: adds own trips. Company driver: no add form */}
-      {driverRole === "dispatcher" ? (
+      {/* Dispatcher: picks driver. Private driver (no company): adds own trips. Company driver: no add form. */}
+      {driverRole === "dispatcher" && (
         <AddTripForm dict={dict} driverId={driverId} driverName={driverName} driverLogoUrl={logoUrl} onTripAdded={() => setTripRefresh(prev => prev + 1)} companyDrivers={companyDrivers} />
-      ) : !(driverRole === "driver" && companyId) ? (
+      )}
+      {driverRole === "driver" && !companyId && (
         <AddTripForm dict={dict} driverId={driverId} driverName={driverName} driverLogoUrl={logoUrl} onTripAdded={() => setTripRefresh(prev => prev + 1)} />
-      ) : null}
+      )}
       <TripPassengers dict={dict} driverId={driverId} refreshKey={tripRefresh} companyDriverIds={driverRole === "dispatcher" ? companyDriverIds : undefined} />
 
       {/* Divider */}
