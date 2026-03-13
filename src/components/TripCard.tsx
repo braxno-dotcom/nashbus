@@ -6,18 +6,6 @@ type Dict = Awaited<ReturnType<typeof import("@/i18n/get-dictionary").getDiction
 
 const SUPABASE_URL = "https://wxwjsyhrykiexkkoyhoz.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4d2pzeWhyeWtpZXhra295aG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjEwNDcsImV4cCI6MjA4ODczNzA0N30.53Ww3hcMl6xirqELFvgZGe-k_Oxfjx6xyAaEAkcOjJ4";
-const TG_BOT = "8649751004:AAGU7RB-8LnS0ST_emDyA4fQV28pVH4ghgU";
-const TG_ADMIN_CHAT = "5128868044";
-
-async function notifyTelegram(text: string) {
-  try {
-    await fetch(`https://api.telegram.org/bot${TG_BOT}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: TG_ADMIN_CHAT, text, parse_mode: "HTML" }),
-    });
-  } catch { /* ignore */ }
-}
 
 interface Trip {
   id: string;
@@ -97,17 +85,7 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
       });
       if (!res.ok) throw new Error();
       setConfirmed(true);
-      // Notify admin via Telegram
-      const seats = parseInt(paxSeats) || 1;
-      notifyTelegram(
-        `🚌 <b>Новая бронь!</b>\n\n` +
-        `📍 ${from} → ${to}\n` +
-        `📅 ${trip.date}${trip.departure ? " в " + trip.departure : ""}\n` +
-        `👤 ${paxName}\n` +
-        `📞 ${paxPhone}\n` +
-        `💺 Мест: ${seats}\n` +
-        `🚐 ${trip.carrier}`
-      );
+      // Telegram notification is sent by database trigger (notify_booking)
     } catch {
       alert(t.bookError || "Error");
     }
