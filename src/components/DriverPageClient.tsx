@@ -40,6 +40,7 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
   const [logoUrl, setLogoUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [tripRefresh, setTripRefresh] = useState(0);
+  const [tgConnected, setTgConnected] = useState(false);
   const [tgStatus, setTgStatus] = useState<"idle" | "checking" | "connected" | "not_found">("idle");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -51,6 +52,12 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
       setDriverName(info.name);
       const saved = localStorage.getItem(`${LOGO_KEY}_${info.id}`);
       if (saved) setLogoUrl(saved);
+      // Check if Telegram is already connected
+      fetch(`${SUPABASE_URL}/rest/v1/driver_codes?id=eq.${info.id}&select=telegram_chat_id`, {
+        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+      }).then(r => r.json()).then(data => {
+        if (data?.[0]?.telegram_chat_id) setTgConnected(true);
+      }).catch(() => {});
     }
     setLoading(false);
   }, []);
@@ -110,7 +117,12 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
         body: JSON.stringify({ p_driver_id: driverId }),
       });
       const result = await res.json();
-      setTgStatus(result === "ok" ? "connected" : "not_found");
+      if (result === "ok") {
+        setTgStatus("connected");
+        setTgConnected(true);
+      } else {
+        setTgStatus("not_found");
+      }
     } catch {
       setTgStatus("not_found");
     }
@@ -188,17 +200,15 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
         />
       </div>
 
-      {/* Telegram connection */}
-      <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-3">
-        <div className="flex items-center gap-1.5 mb-2">
-          <svg className="w-3.5 h-3.5 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-          </svg>
-          <span className="text-xs font-bold text-gray-800">Telegram</span>
-        </div>
-        {tgStatus === "connected" ? (
-          <p className="text-[10px] text-green-600 font-medium">✅ Подключено! Уведомления о бронях будут приходить в Telegram.</p>
-        ) : (
+      {/* Telegram connection — only show if not connected */}
+      {!tgConnected && (
+        <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-3">
+          <div className="flex items-center gap-1.5 mb-2">
+            <svg className="w-3.5 h-3.5 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+            </svg>
+            <span className="text-xs font-bold text-gray-800">Telegram</span>
+          </div>
           <div className="space-y-2">
             <p className="text-[10px] text-gray-500">Получайте уведомления о новых бронях в Telegram</p>
             <div className="flex gap-1.5">
@@ -219,11 +229,11 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
               </button>
             </div>
             {tgStatus === "not_found" && (
-              <p className="text-[10px] text-red-500">Не найдено. Нажмите "Открыть бот", отправьте Start, затем "Подтвердить".</p>
+              <p className="text-[10px] text-red-500">Нажмите "Открыть бот", отправьте Start, затем "Подтвердить".</p>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <StatsModal dict={dict} driverId={driverId} lang={lang} />
       <AddTripForm dict={dict} driverId={driverId} driverName={driverName} driverLogoUrl={logoUrl} onTripAdded={() => setTripRefresh(prev => prev + 1)} />
