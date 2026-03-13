@@ -26,15 +26,21 @@ export default function DriverClients({ dict, driverId }: { dict: Dict; driverId
   const [routeDate, setRouteDate] = useState("");
   const [routeCities, setRouteCities] = useState<string[]>([]);
 
+  const [loadingClients, setLoadingClients] = useState(true);
+
   useEffect(() => {
-    setClients(getClients(driverId));
+    setLoadingClients(true);
+    getClients(driverId).then(data => {
+      setClients(data);
+      setLoadingClients(false);
+    });
   }, [driverId]);
 
   function handleNameChange(value: string) {
     setName(value);
     setAddressWarning(null);
     if (value.length >= 2) {
-      setSuggestions(findClientByName(driverId, value));
+      findClientByName(driverId, value).then(setSuggestions);
     } else {
       setSuggestions([]);
     }
@@ -58,11 +64,12 @@ export default function DriverClients({ dict, driverId }: { dict: Dict; driverId
     setShowHistory(null);
   }
 
-  function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!name || !phone || !address) return;
-    const result = saveClient(driverId, name, phone, address);
-    setClients(getClients(driverId));
+    const result = await saveClient(driverId, name, phone, address);
+    const updated = await getClients(driverId);
+    setClients(updated);
     setName("");
     setPhone("");
     setAddress("");
@@ -75,9 +82,10 @@ export default function DriverClients({ dict, driverId }: { dict: Dict; driverId
     }
   }
 
-  function handleDelete(id: string) {
-    deleteClient(driverId, id);
-    setClients(getClients(driverId));
+  async function handleDelete(id: string) {
+    await deleteClient(driverId, id);
+    const updated = await getClients(driverId);
+    setClients(updated);
   }
 
   function sendReceipt(via: "whatsapp" | "viber") {
@@ -182,7 +190,11 @@ export default function DriverClients({ dict, driverId }: { dict: Dict; driverId
       </div>
 
       {/* Clients list */}
-      {clients.length === 0 ? (
+      {loadingClients ? (
+        <div className="flex justify-center py-3">
+          <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : clients.length === 0 ? (
         <p className="text-center text-xs text-gray-400 py-3">{dict.clients.noClients}</p>
       ) : (
         <div className="space-y-2">

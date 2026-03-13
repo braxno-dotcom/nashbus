@@ -1,3 +1,6 @@
+const SUPABASE_URL = "https://wxwjsyhrykiexkkoyhoz.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4d2pzeWhyeWtpZXhra295aG96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjEwNDcsImV4cCI6MjA4ODczNzA0N30.53Ww3hcMl6xirqELFvgZGe-k_Oxfjx6xyAaEAkcOjJ4";
+
 export interface ClientRecord {
   id: string;
   name: string;
@@ -8,56 +11,112 @@ export interface ClientRecord {
   updatedAt: string;
 }
 
-function storageKey(driverId: string) {
-  return `nashbus_clients_${driverId}`;
+interface DbRow {
+  id: string;
+  driver_id: string;
+  name: string;
+  phone: string;
+  address: string;
+  address_history: string[];
+  created_at: string;
+  updated_at: string;
 }
 
-export function getClients(driverId: string): ClientRecord[] {
-  if (typeof window === "undefined") return [];
-  const data = localStorage.getItem(storageKey(driverId));
-  return data ? JSON.parse(data) : [];
+function rowToClient(row: DbRow): ClientRecord {
+  return {
+    id: row.id,
+    name: row.name,
+    phone: row.phone,
+    address: row.address,
+    addressHistory: row.address_history || [],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
-export function saveClient(driverId: string, name: string, phone: string, address: string): { client: ClientRecord; isNew: boolean; addressChanged: boolean } {
-  const clients = getClients(driverId);
-  const existing = clients.find(
-    (c) => c.name.toLowerCase() === name.toLowerCase()
+async function sbFetch(path: string, options?: RequestInit) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      "Prefer": "return=representation",
+      ...options?.headers,
+    },
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function getClients(driverId: string): Promise<ClientRecord[]> {
+  const data = await sbFetch(`driver_clients?driver_id=eq.${driverId}&order=name`);
+  if (!data) return [];
+  return data.map(rowToClient);
+}
+
+export async function saveClient(
+  driverId: string,
+  name: string,
+  phone: string,
+  address: string
+): Promise<{ client: ClientRecord; isNew: boolean; addressChanged: boolean }> {
+  // Check if client with this name already exists for this driver
+  const existing = await sbFetch(
+    `driver_clients?driver_id=eq.${driverId}&name=ilike.${encodeURIComponent(name)}&limit=1`
   );
 
-  if (existing) {
-    const addressChanged = existing.address !== address;
-    if (addressChanged && !existing.addressHistory.includes(existing.address)) {
-      existing.addressHistory.push(existing.address);
+  if (existing && existing.length > 0) {
+    const row: DbRow = existing[0];
+    const addressChanged = row.address !== address;
+    const newHistory = [...(row.address_history || [])];
+    if (addressChanged && !newHistory.includes(row.address)) {
+      newHistory.push(row.address);
     }
-    existing.phone = phone;
-    existing.address = address;
-    existing.updatedAt = new Date().toISOString();
-    localStorage.setItem(storageKey(driverId), JSON.stringify(clients));
-    return { client: existing, isNew: false, addressChanged };
+
+    const updated = await sbFetch(`driver_clients?id=eq.${row.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        phone,
+        address,
+        address_history: newHistory,
+        updated_at: new Date().toISOString(),
+      }),
+    });
+
+    const client = updated && updated.length > 0 ? rowToClient(updated[0]) : rowToClient(row);
+    return { client, isNew: false, addressChanged };
   }
 
-  const newClient: ClientRecord = {
-    id: Date.now().toString(),
-    name,
-    phone,
-    address,
-    addressHistory: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-  clients.push(newClient);
-  localStorage.setItem(storageKey(driverId), JSON.stringify(clients));
-  return { client: newClient, isNew: true, addressChanged: false };
+  // Create new
+  const data = await sbFetch("driver_clients", {
+    method: "POST",
+    body: JSON.stringify({
+      driver_id: driverId,
+      name,
+      phone,
+      address,
+      address_history: [],
+    }),
+  });
+
+  const client = data && data.length > 0
+    ? rowToClient(data[0])
+    : { id: "", name, phone, address, addressHistory: [], createdAt: "", updatedAt: "" };
+  return { client, isNew: true, addressChanged: false };
 }
 
-export function deleteClient(driverId: string, id: string): void {
-  const clients = getClients(driverId).filter((c) => c.id !== id);
-  localStorage.setItem(storageKey(driverId), JSON.stringify(clients));
+export async function deleteClient(driverId: string, id: string): Promise<void> {
+  await sbFetch(`driver_clients?id=eq.${id}&driver_id=eq.${driverId}`, {
+    method: "DELETE",
+  });
 }
 
-export function findClientByName(driverId: string, query: string): ClientRecord[] {
+export async function findClientByName(driverId: string, query: string): Promise<ClientRecord[]> {
   if (!query || query.length < 2) return [];
-  const clients = getClients(driverId);
-  const q = query.toLowerCase();
-  return clients.filter((c) => c.name.toLowerCase().includes(q));
+  const data = await sbFetch(
+    `driver_clients?driver_id=eq.${driverId}&name=ilike.*${encodeURIComponent(query)}*&limit=5`
+  );
+  if (!data) return [];
+  return data.map(rowToClient);
 }
