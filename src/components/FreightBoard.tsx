@@ -360,10 +360,9 @@ export default function FreightBoard({ dict }: { dict: Dict }) {
                     </a>
                     <button
                       onClick={() => handleReport(item.id)}
-                      className="py-1.5 px-2 rounded bg-red-50 text-red-500 text-[10px] font-bold hover:bg-red-100 transition-all ml-auto"
-                      title={f.report}
+                      className="py-1.5 px-2.5 rounded bg-red-50 text-red-500 text-[10px] font-bold hover:bg-red-100 transition-all ml-auto"
                     >
-                      ⚠
+                      {f.report}
                     </button>
                   </div>
                 </div>
