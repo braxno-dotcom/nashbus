@@ -86,6 +86,7 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
       });
       if (!res.ok) throw new Error();
       setConfirmed(true);
+      setFormOpen(false);
       // Telegram notification is sent by database trigger (notify_booking)
     } catch {
       alert(t.bookError || "Error");
@@ -186,55 +187,57 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
         </div>
       )}
 
-      {/* Booking form */}
+      {/* Booking modal */}
       {formOpen && !confirmed && (
-        <form onSubmit={handleBooking} className="bg-gray-50 rounded-lg p-2.5 mb-2 space-y-1.5">
-          <input
-            type="text"
-            value={paxName}
-            onChange={(e) => setPaxName(e.target.value)}
-            placeholder={t.bookName || "Name"}
-            required
-            className="w-full px-2.5 py-2 rounded-lg bg-white border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
-          />
-          <input
-            type="tel"
-            value={paxPhone}
-            onChange={(e) => setPaxPhone(e.target.value)}
-            placeholder={t.bookPhone || "Phone"}
-            required
-            className="w-full px-2.5 py-2 rounded-lg bg-white border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
-          />
-          <div className="flex gap-1.5">
-            <div className="w-20">
-              <p className="text-[9px] text-gray-400 mb-0.5">{t.bookSeats || "Seats"}</p>
-              <input
-                type="number"
-                value={paxSeats}
-                onChange={(e) => setPaxSeats(e.target.value)}
-                min="1"
-                max={seatsLeft > 0 ? seatsLeft : 1}
-                className="w-full px-2 py-2 rounded-lg bg-white border border-gray-200 text-xs focus:outline-none focus:border-blue-500"
-              />
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={(e) => { if (e.target === e.currentTarget) setFormOpen(false); }}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative bg-white w-full max-w-sm rounded-xl p-4 mx-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-gray-800">{t.book}</h3>
+              <button onClick={() => setFormOpen(false)} className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 text-xs">✕</button>
             </div>
-            <div className="flex-1 flex gap-1.5 items-end">
+            <div className="bg-gray-50 rounded-lg p-2 mb-3">
+              <p className="text-xs font-bold text-gray-800">{from} → {to}</p>
+              <p className="text-[10px] text-gray-500">{trip.date}{trip.departure ? `, ${trip.departure}` : ""} · {trip.carrier}</p>
+            </div>
+            <form onSubmit={handleBooking} className="space-y-2">
+              <input
+                type="text"
+                value={paxName}
+                onChange={(e) => setPaxName(e.target.value)}
+                placeholder={t.bookName || "Name"}
+                required
+                className="w-full px-3 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              />
+              <input
+                type="tel"
+                value={paxPhone}
+                onChange={(e) => setPaxPhone(e.target.value)}
+                placeholder={t.bookPhone || "Phone"}
+                required
+                className="w-full px-3 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              />
+              <div>
+                <p className="text-[10px] text-gray-500 mb-0.5">{t.bookSeats || "Seats"}</p>
+                <input
+                  type="number"
+                  value={paxSeats}
+                  onChange={(e) => setPaxSeats(e.target.value)}
+                  min="1"
+                  max={seatsLeft > 0 ? seatsLeft : 1}
+                  className="w-20 px-3 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500"
+                />
+              </div>
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 py-2 bg-blue-600 text-white font-bold rounded-lg text-[10px] hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-50"
+                className="w-full py-2.5 bg-blue-600 text-white font-bold rounded-lg text-xs hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-50"
               >
                 {submitting ? "..." : t.bookSubmit || "Confirm"}
               </button>
-              <button
-                type="button"
-                onClick={() => setFormOpen(false)}
-                className="py-2 px-2.5 bg-gray-200 text-gray-600 font-medium rounded-lg text-[10px] hover:bg-gray-300 transition-all"
-              >
-                {t.bookCancel || "Cancel"}
-              </button>
-            </div>
+            </form>
           </div>
-        </form>
+        </div>
       )}
 
       {/* Booking confirmation */}
