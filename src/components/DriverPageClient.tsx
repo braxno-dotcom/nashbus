@@ -42,6 +42,8 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
   const [tripRefresh, setTripRefresh] = useState(0);
   const [tgConnected, setTgConnected] = useState(false);
   const [tgStatus, setTgStatus] = useState<"idle" | "checking" | "connected" | "not_found">("idle");
+  const [driverRole, setDriverRole] = useState("driver");
+  const [companyDriverIds, setCompanyDriverIds] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -50,6 +52,7 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
       setLoggedIn(true);
       setDriverId(info.id);
       setDriverName(info.name);
+      setDriverRole(info.role || "driver");
       const saved = localStorage.getItem(`${LOGO_KEY}_${info.id}`);
       if (saved) setLogoUrl(saved);
       // Check if Telegram is already connected
@@ -58,6 +61,14 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
       }).then(r => r.json()).then(data => {
         if (data?.[0]?.telegram_chat_id) setTgConnected(true);
       }).catch(() => {});
+      // If dispatcher, load all company driver IDs
+      if (info.role === "dispatcher" && info.companyId) {
+        fetch(`${SUPABASE_URL}/rest/v1/driver_codes?company_id=eq.${encodeURIComponent(info.companyId)}&is_active=eq.true&select=id,driver_name`, {
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
+        }).then(r => r.json()).then(data => {
+          if (data) setCompanyDriverIds(data.map((d: { id: string }) => d.id));
+        }).catch(() => {});
+      }
     }
     setLoading(false);
   }, []);
@@ -68,6 +79,7 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
       setLoggedIn(true);
       setDriverId(info.id);
       setDriverName(info.name);
+      setDriverRole(info.role || "driver");
       const saved = localStorage.getItem(`${LOGO_KEY}_${info.id}`);
       if (saved) setLogoUrl(saved);
     }
@@ -237,7 +249,7 @@ export default function DriverPageClient({ dict, lang }: { dict: Dict; lang?: st
 
       <StatsModal dict={dict} driverId={driverId} lang={lang} />
       <AddTripForm dict={dict} driverId={driverId} driverName={driverName} driverLogoUrl={logoUrl} onTripAdded={() => setTripRefresh(prev => prev + 1)} />
-      <TripPassengers dict={dict} driverId={driverId} refreshKey={tripRefresh} />
+      <TripPassengers dict={dict} driverId={driverId} refreshKey={tripRefresh} companyDriverIds={driverRole === "dispatcher" ? companyDriverIds : undefined} />
 
       {/* Divider */}
       <div className="border-t-2 border-dashed border-gray-200 my-2"></div>

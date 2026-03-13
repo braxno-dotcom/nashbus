@@ -157,6 +157,13 @@
             <input type="text" id="code-driver-name" placeholder="Имя водителя" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px">
             <input type="tel" id="code-driver-phone" placeholder="Телефон" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px">
           </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <input type="text" id="code-company-id" placeholder="ID компании (необязательно)" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px">
+            <select id="code-role" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px">
+              <option value="driver">Водитель</option>
+              <option value="dispatcher">Диспетчер</option>
+            </select>
+          </div>
           <div style="display:grid;grid-template-columns:1fr auto;gap:8px">
             <select id="code-duration" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px">
               <option value="30">30 дней</option>
@@ -520,6 +527,8 @@ function renderCodes() {
         '<div style="font-size:10px;color:#6b7280">' +
           '<span onclick="editCodePhone(\'' + c.id + '\',\'' + (c.phone || '').replace(/'/g, "\\'") + '\')" style="cursor:pointer;border-bottom:1px dashed #9ca3af">' + (c.phone || 'нет телефона') + '</span>' +
           ' · до ' + expDate +
+          (c.role === 'dispatcher' ? ' · <b>Диспетчер</b>' : '') +
+          (c.company_id ? ' · ' + c.company_id : '') +
         '</div>' +
         '<div style="display:flex;gap:4px">' +
           (c.is_active
@@ -536,6 +545,8 @@ function renderCodes() {
 async function createCode() {
   var name = document.getElementById("code-driver-name").value.trim();
   var phone = document.getElementById("code-driver-phone").value.trim();
+  var companyId = document.getElementById("code-company-id").value.trim() || null;
+  var role = document.getElementById("code-role").value || "driver";
   var days = parseInt(document.getElementById("code-duration").value) || 365;
   if (!name) { alert("Введите имя водителя"); return; }
 
@@ -543,18 +554,23 @@ async function createCode() {
   var expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + days);
 
-  var { error } = await sb.from("driver_codes").insert({
+  var insertData = {
     code: code,
     driver_name: name,
     phone: phone,
     expires_at: expiresAt.toISOString(),
-    is_active: true
-  });
+    is_active: true,
+    role: role
+  };
+  if (companyId) insertData.company_id = companyId;
+
+  var { error } = await sb.from("driver_codes").insert(insertData);
 
   if (error) { alert("Ошибка: " + error.message); return; }
 
   document.getElementById("code-driver-name").value = "";
   document.getElementById("code-driver-phone").value = "";
+  document.getElementById("code-company-id").value = "";
   await loadCodes();
 }
 

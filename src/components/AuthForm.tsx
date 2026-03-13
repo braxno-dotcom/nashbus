@@ -14,6 +14,8 @@ export interface DriverInfo {
   id: string;
   name: string;
   phone: string;
+  role: string;
+  companyId: string | null;
 }
 
 export function getDriverAuth(): DriverInfo | null {
@@ -33,7 +35,7 @@ export function driverLogout() {
 
 async function checkCode(code: string): Promise<{ ok: boolean; driver?: DriverInfo; error?: string }> {
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/driver_codes?code=eq.${encodeURIComponent(code)}&is_active=eq.true&select=id,code,driver_name,phone,expires_at`,
+    `${SUPABASE_URL}/rest/v1/driver_codes?code=eq.${encodeURIComponent(code)}&is_active=eq.true&select=id,code,driver_name,phone,expires_at,role,company_id`,
     {
       headers: {
         "apikey": SUPABASE_KEY,
@@ -50,7 +52,7 @@ async function checkCode(code: string): Promise<{ ok: boolean; driver?: DriverIn
 
   return {
     ok: true,
-    driver: { id: row.id, name: row.driver_name, phone: row.phone || "" },
+    driver: { id: row.id, name: row.driver_name, phone: row.phone || "", role: row.role || "driver", companyId: row.company_id || null },
   };
 }
 

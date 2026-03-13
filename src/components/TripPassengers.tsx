@@ -41,7 +41,7 @@ async function sbFetch(path: string, options?: RequestInit) {
   return res.json();
 }
 
-export default function TripPassengers({ dict, driverId, refreshKey = 0 }: { dict: Dict; driverId: string; refreshKey?: number }) {
+export default function TripPassengers({ dict, driverId, refreshKey = 0, companyDriverIds }: { dict: Dict; driverId: string; refreshKey?: number; companyDriverIds?: string[] }) {
   const [routes, setRoutes] = useState<RouteInfo[]>([]);
   const [selectedRoute, setSelectedRoute] = useState<string>("");
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -57,14 +57,22 @@ export default function TripPassengers({ dict, driverId, refreshKey = 0 }: { dic
   const driverDict = dict.driver as Record<string, string>;
   const cities = dict.cities as Record<string, string>;
 
-  // Load driver's routes
+  // Load driver's routes (or all company routes for dispatcher)
   useEffect(() => {
     async function load() {
-      const data = await sbFetch(`routes?carrier_id=eq.${driverId}&select=id,carrier,from_key,to_key,trip_date,total_seats&order=trip_date.desc`);
+      let url: string;
+      if (companyDriverIds && companyDriverIds.length > 0) {
+        // Dispatcher: load routes for all company drivers
+        const ids = companyDriverIds.map(id => `"${id}"`).join(",");
+        url = `routes?carrier_id=in.(${ids})&select=id,carrier,from_key,to_key,trip_date,total_seats&order=trip_date.desc`;
+      } else {
+        url = `routes?carrier_id=eq.${driverId}&select=id,carrier,from_key,to_key,trip_date,total_seats&order=trip_date.desc`;
+      }
+      const data = await sbFetch(url);
       if (data) setRoutes(data);
     }
     if (driverId) load();
-  }, [driverId, refreshKey]);
+  }, [driverId, refreshKey, companyDriverIds]);
 
   // Load bookings for selected route
   useEffect(() => {
