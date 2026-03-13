@@ -125,6 +125,14 @@
 
 <div class="admin-body">
   <div class="container">
+    <div id="dispatcher-bar" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px 12px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <span style="font-size:11px;font-weight:700;color:#1f2937" id="dispatcher-name"></span>
+        <span style="font-size:9px;background:#e9d5ff;color:#7c3aed;font-weight:600;padding:2px 6px;border-radius:4px;margin-left:6px">Диспетчер</span>
+        <span style="font-size:9px;color:#6b7280;margin-left:6px" id="dispatcher-company"></span>
+      </div>
+      <button onclick="dispatcherLogout()" style="font-size:10px;color:#dc2626;font-weight:500;background:none;border:none;cursor:pointer;text-decoration:underline">Выйти</button>
+    </div>
     <h1 class="admin-title" data-i18n="title">Управление рейсами</h1>
     <p class="admin-sub" data-i18n="subtitle">Добавляйте, редактируйте и удаляйте рейсы. Изменения мгновенно появятся на главной странице.</p>
 
@@ -284,19 +292,118 @@
 <script src="supabase-config.js"></script>
 <script>
 // ==================== Auth gate ====================
-(function() {
-  var AUTH_KEY = "nashbus_admin_auth";
-  var PASS = "access2026";
-  var saved = sessionStorage.getItem(AUTH_KEY);
-  if (saved === PASS) return;
-  var input = prompt("Введите пароль для доступа к админ-панели:");
-  if (input === PASS) {
-    sessionStorage.setItem(AUTH_KEY, PASS);
-  } else {
-    alert("Неверный пароль");
-    window.location.href = "index.html";
+var DISPATCHER_AUTH_KEY = "nashbus_dispatcher_auth";
+var dispatcherInfo = null; // { id, name, companyId, driverIds: [] }
+
+function getDispatcherAuth() {
+  var saved = localStorage.getItem(DISPATCHER_AUTH_KEY);
+  if (!saved) return null;
+  try { return JSON.parse(saved); } catch(e) { return null; }
+}
+
+function dispatcherLogout() {
+  localStorage.removeItem(DISPATCHER_AUTH_KEY);
+  location.reload();
+}
+
+async function checkDispatcherCode(code) {
+  var { data, error } = await sb.from("driver_codes")
+    .select("id,code,driver_name,phone,expires_at,role,company_id")
+    .eq("code", code)
+    .eq("is_active", true)
+    .single();
+
+  if (error || !data) return { ok: false, error: "notFound" };
+  if (new Date(data.expires_at) < new Date()) return { ok: false, error: "expired" };
+  if (data.role !== "dispatcher") return { ok: false, error: "notDispatcher" };
+  if (!data.company_id) return { ok: false, error: "noCompany" };
+
+  // Load all company driver IDs
+  var { data: drivers } = await sb.from("driver_codes")
+    .select("id,driver_name")
+    .eq("company_id", data.company_id)
+    .eq("is_active", true);
+
+  var driverIds = (drivers || []).filter(function(d) { return d.id !== data.id; }).map(function(d) { return d.id; });
+  var driverNames = {};
+  (drivers || []).forEach(function(d) { driverNames[d.id] = d.driver_name; });
+
+  return {
+    ok: true,
+    info: {
+      id: data.id,
+      name: data.driver_name,
+      companyId: data.company_id,
+      driverIds: driverIds,
+      allIds: (drivers || []).map(function(d) { return d.id; }),
+      driverNames: driverNames
+    }
+  };
+}
+
+// Try restoring session
+dispatcherInfo = getDispatcherAuth();
+
+if (!dispatcherInfo) {
+  // Show login overlay
+  document.addEventListener("DOMContentLoaded", function() {
+    var overlay = document.createElement("div");
+    overlay.id = "auth-overlay";
+    overlay.style.cssText = "position:fixed;inset:0;z-index:9999;background:#f8fafc;display:flex;align-items:center;justify-content:center";
+    overlay.innerHTML = '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;max-width:320px;width:100%;margin:16px;text-align:center">' +
+      '<div style="width:40px;height:40px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">' +
+        '<svg style="width:20px;height:20px;color:#2563eb" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>' +
+      '</div>' +
+      '<h2 style="font-size:14px;font-weight:700;color:#1f2937;margin-bottom:4px">Вход для диспетчера</h2>' +
+      '<p style="font-size:10px;color:#9ca3af;margin-bottom:16px">Введите код доступа, выданный администратором платформы</p>' +
+      '<div id="auth-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:6px;margin-bottom:12px;font-size:10px;color:#dc2626;font-weight:500"></div>' +
+      '<input id="auth-code" type="text" placeholder="Код доступа" style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;text-align:center;letter-spacing:2px;font-family:monospace;margin-bottom:8px;outline:none" autocomplete="off">' +
+      '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:12px"><input id="auth-remember" type="checkbox" style="width:14px;height:14px"><span style="font-size:10px;color:#6b7280">Запомнить</span></label>' +
+      '<button id="auth-submit" style="width:100%;padding:10px;background:#2563eb;color:#fff;font-weight:700;font-size:12px;border:none;border-radius:8px;cursor:pointer">Войти</button>' +
+    '</div>';
+    document.body.appendChild(overlay);
+
+    document.getElementById("auth-submit").onclick = async function() {
+      var code = document.getElementById("auth-code").value.trim();
+      var errEl = document.getElementById("auth-error");
+      if (!code) return;
+      this.disabled = true;
+      this.textContent = "...";
+      errEl.style.display = "none";
+
+      var result = await checkDispatcherCode(code);
+      if (result.ok) {
+        dispatcherInfo = result.info;
+        if (document.getElementById("auth-remember").checked) {
+          localStorage.setItem(DISPATCHER_AUTH_KEY, JSON.stringify(dispatcherInfo));
+        } else {
+          sessionStorage.setItem(DISPATCHER_AUTH_KEY, JSON.stringify(dispatcherInfo));
+        }
+        overlay.remove();
+        initDispatcherPage();
+      } else {
+        var msg = "Неверный код";
+        if (result.error === "expired") msg = "Код истёк";
+        if (result.error === "notDispatcher") msg = "Этот код не для диспетчера";
+        if (result.error === "noCompany") msg = "Код не привязан к компании";
+        errEl.textContent = msg;
+        errEl.style.display = "block";
+        this.disabled = false;
+        this.textContent = "Войти";
+      }
+    };
+
+    document.getElementById("auth-code").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") document.getElementById("auth-submit").click();
+    });
+  });
+} else {
+  // Already logged in — also check sessionStorage
+  if (!dispatcherInfo) {
+    var sess = sessionStorage.getItem(DISPATCHER_AUTH_KEY);
+    if (sess) try { dispatcherInfo = JSON.parse(sess); } catch(e) {}
   }
-})();
+}
 
 // ==================== i18n ====================
 var ADMIN_DICT = {
@@ -670,8 +777,8 @@ async function saveTrip(e) {
       await sbInsertTrip(trip);
     }
   }
-  trips = await sbLoadTrips();
-  bookingCounts = await sbLoadBookingCounts();
+  trips = await sbLoadTripsFiltered();
+  bookingCounts = await sbLoadBookingCountsFiltered();
   cancelEdit();
   renderTable();
   document.getElementById("f-repeat").checked = false;
@@ -719,8 +826,8 @@ function editTrip(id) {
 async function deleteTrip(id) {
   if (!confirm(at("confirmDelete"))) return;
   await sbDeleteTrip(id);
-  trips = await sbLoadTrips();
-  bookingCounts = await sbLoadBookingCounts();
+  trips = await sbLoadTripsFiltered();
+  bookingCounts = await sbLoadBookingCountsFiltered();
   renderTable();
 }
 
@@ -765,9 +872,18 @@ async function openStatsModal() {
     return d >= monthStart && d < nextMonth;
   });
 
-  // Load all bookings
-  var { data: allBookings, error } = await sb.from("bookings").select("route_id,seats_count");
-  allBookings = error ? [] : (allBookings || []);
+  // Load bookings (filtered for dispatcher)
+  var allBookings = [];
+  if (dispatcherInfo && dispatcherInfo.allIds && dispatcherInfo.allIds.length > 0) {
+    var routeIds = trips.map(function(t) { return t.id; });
+    if (routeIds.length > 0) {
+      var { data: bData, error } = await sb.from("bookings").select("route_id,seats_count").in("route_id", routeIds);
+      allBookings = error ? [] : (bData || []);
+    }
+  } else {
+    var { data: bData2, error: error2 } = await sb.from("bookings").select("route_id,seats_count");
+    allBookings = error2 ? [] : (bData2 || []);
+  }
 
   var monthRouteIds = {};
   monthTrips.forEach(function(t) { monthRouteIds[t.id] = true; });
@@ -956,12 +1072,48 @@ setupAC("f-from", "ac-from", false);
 setupAC("f-to", "ac-to", false);
 setupAC("f-waypoints", "ac-wp", true);
 
-// Load trips and bookings from Supabase then render
-Promise.all([sbLoadTrips(), sbLoadBookingCounts()]).then(function(results) {
-  trips = results[0];
-  bookingCounts = results[1];
+// Filtered loaders for dispatcher
+async function sbLoadTripsFiltered() {
+  if (dispatcherInfo && dispatcherInfo.allIds && dispatcherInfo.allIds.length > 0) {
+    var { data, error } = await sb.from("routes").select("*").in("carrier_id", dispatcherInfo.allIds).order("created_at");
+    if (error) { console.error("Load error:", error); return []; }
+    return data.map(dbToTrip);
+  }
+  return sbLoadTrips();
+}
+
+async function sbLoadBookingCountsFiltered() {
+  if (dispatcherInfo && dispatcherInfo.allIds && dispatcherInfo.allIds.length > 0) {
+    // Use already loaded trips to get route IDs
+    var routeIds = trips.map(function(t) { return t.id; });
+    if (routeIds.length === 0) return {};
+    var { data, error } = await sb.from("bookings").select("route_id,seats_count").in("route_id", routeIds);
+    if (error) { console.error("Bookings error:", error); return {}; }
+    var map = {};
+    (data || []).forEach(function(b) { map[b.route_id] = (map[b.route_id] || 0) + b.seats_count; });
+    return map;
+  }
+  return sbLoadBookingCounts();
+}
+
+async function initDispatcherPage() {
+  // Show dispatcher bar
+  var bar = document.getElementById("dispatcher-bar");
+  if (bar && dispatcherInfo) {
+    bar.style.display = "flex";
+    document.getElementById("dispatcher-name").textContent = dispatcherInfo.name;
+    document.getElementById("dispatcher-company").textContent = dispatcherInfo.companyId;
+  }
+  // Load filtered data (trips first, then bookings which depend on trips)
+  trips = await sbLoadTripsFiltered();
+  bookingCounts = await sbLoadBookingCountsFiltered();
   renderTable();
-});
+}
+
+// Start the page if already logged in
+if (dispatcherInfo) {
+  initDispatcherPage();
+}
 </script>
 </body>
 </html>
