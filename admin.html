@@ -300,13 +300,14 @@ var DISPATCHER_AUTH_KEY = "nashbus_dispatcher_auth";
 var dispatcherInfo = null; // { id, name, companyId, driverIds: [] }
 
 function getDispatcherAuth() {
-  var saved = localStorage.getItem(DISPATCHER_AUTH_KEY);
+  var saved = localStorage.getItem(DISPATCHER_AUTH_KEY) || sessionStorage.getItem(DISPATCHER_AUTH_KEY);
   if (!saved) return null;
   try { return JSON.parse(saved); } catch(e) { return null; }
 }
 
 function dispatcherLogout() {
   localStorage.removeItem(DISPATCHER_AUTH_KEY);
+  sessionStorage.removeItem(DISPATCHER_AUTH_KEY);
   location.reload();
 }
 
@@ -403,12 +404,6 @@ if (!dispatcherInfo) {
       if (e.key === "Enter") document.getElementById("auth-submit").click();
     });
   });
-} else {
-  // Already logged in — also check sessionStorage
-  if (!dispatcherInfo) {
-    var sess = sessionStorage.getItem(DISPATCHER_AUTH_KEY);
-    if (sess) try { dispatcherInfo = JSON.parse(sess); } catch(e) {}
-  }
 }
 
 // ==================== i18n ====================
