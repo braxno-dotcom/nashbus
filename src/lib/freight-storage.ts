@@ -94,3 +94,13 @@ export async function addFreightListing(
     return null;
   }
 }
+
+export async function logFreightClick(listingId: string, clickType: "call" | "whatsapp" | "viber"): Promise<void> {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/freight_clicks`, {
+      method: "POST",
+      headers: { ...headers, "Prefer": "return=minimal" },
+      body: JSON.stringify({ listing_id: listingId, click_type: clickType }),
+    });
+  } catch {}
+}

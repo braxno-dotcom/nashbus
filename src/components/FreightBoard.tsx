@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getFreightListings, addFreightListing, type FreightListing } from "@/lib/freight-storage";
+import { getFreightListings, addFreightListing, logFreightClick, type FreightListing } from "@/lib/freight-storage";
 
 type Dict = Awaited<ReturnType<typeof import("@/i18n/get-dictionary").getDictionary>>;
 
@@ -312,6 +312,7 @@ export default function FreightBoard({ dict }: { dict: Dict }) {
                   <div className="flex gap-1.5">
                     <a
                       href={`tel:${item.phone}`}
+                      onClick={() => logFreightClick(item.id, "call")}
                       className="py-1.5 px-3 rounded bg-gray-100 text-gray-700 text-[10px] font-bold hover:bg-gray-200 transition-all flex items-center gap-1"
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -323,6 +324,7 @@ export default function FreightBoard({ dict }: { dict: Dict }) {
                       href={waUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => logFreightClick(item.id, "whatsapp")}
                       className="py-1.5 px-3 rounded bg-green-500 text-white text-[10px] font-bold hover:bg-green-600 transition-all flex items-center gap-1"
                     >
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
@@ -334,6 +336,7 @@ export default function FreightBoard({ dict }: { dict: Dict }) {
                       href={viberUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => logFreightClick(item.id, "viber")}
                       className="py-1.5 px-3 rounded bg-purple-500 text-white text-[10px] font-bold hover:bg-purple-600 transition-all flex items-center gap-1"
                     >
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
