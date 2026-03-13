@@ -324,13 +324,14 @@ async function checkDispatcherCode(code) {
 
   // Load all company driver IDs
   var { data: drivers } = await sb.from("driver_codes")
-    .select("id,driver_name")
+    .select("id,driver_name,phone")
     .eq("company_id", data.company_id)
     .eq("is_active", true);
 
   var driverIds = (drivers || []).filter(function(d) { return d.id !== data.id; }).map(function(d) { return d.id; });
   var driverNames = {};
-  (drivers || []).forEach(function(d) { driverNames[d.id] = d.driver_name; });
+  var driverPhones = {};
+  (drivers || []).forEach(function(d) { driverNames[d.id] = d.driver_name; driverPhones[d.id] = d.phone || ""; });
 
   return {
     ok: true,
@@ -340,7 +341,8 @@ async function checkDispatcherCode(code) {
       companyId: data.company_id,
       driverIds: driverIds,
       allIds: (drivers || []).map(function(d) { return d.id; }),
-      driverNames: driverNames
+      driverNames: driverNames,
+      driverPhones: driverPhones
     }
   };
 }
@@ -1123,6 +1125,9 @@ function onDriverSelect() {
   if (opt) {
     document.getElementById("f-carrier").value = opt.textContent;
     document.getElementById("f-carrier-id").value = opt.value;
+    if (dispatcherInfo && dispatcherInfo.driverPhones) {
+      document.getElementById("f-phone").value = dispatcherInfo.driverPhones[opt.value] || "";
+    }
   }
 }
 
