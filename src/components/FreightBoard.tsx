@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getFreightListings, addFreightListing, logFreightClick, type FreightListing } from "@/lib/freight-storage";
+import { getFreightListings, addFreightListing, logFreightClick, reportFreightListing, type FreightListing } from "@/lib/freight-storage";
 
 type Dict = Awaited<ReturnType<typeof import("@/i18n/get-dictionary").getDictionary>>;
 
@@ -271,11 +271,18 @@ export default function FreightBoard({ dict }: { dict: Dict }) {
                 >
                   {/* Header */}
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                      isSeek ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600"
-                    }`}>
-                      {isSeek ? f.seekLabel : f.offerLabel}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                        isSeek ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600"
+                      }`}>
+                        {isSeek ? f.seekLabel : f.offerLabel}
+                      </span>
+                      {item.verified && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700">
+                          ✓ {f.verified}
+                        </span>
+                      )}
+                    </div>
                     <span className="text-[10px] text-gray-400">{item.tripDate}</span>
                   </div>
 
@@ -344,6 +351,13 @@ export default function FreightBoard({ dict }: { dict: Dict }) {
                       </svg>
                       Viber
                     </a>
+                    <button
+                      onClick={() => handleReport(item.id)}
+                      className="py-1.5 px-2 rounded bg-red-50 text-red-500 text-[10px] font-bold hover:bg-red-100 transition-all ml-auto"
+                      title={f.report}
+                    >
+                      ⚠
+                    </button>
                   </div>
                 </div>
               );
@@ -353,4 +367,12 @@ export default function FreightBoard({ dict }: { dict: Dict }) {
       </div>
     </div>
   );
+
+  async function handleReport(listingId: string) {
+    const reason = prompt(f.reportReason);
+    if (!reason) return;
+    const userPhone = prompt(f.reportPhone) || "";
+    const ok = await reportFreightListing(listingId, reason, userPhone);
+    if (ok) alert(f.reportSuccess);
+  }
 }

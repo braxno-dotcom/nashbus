@@ -12,6 +12,7 @@ export interface FreightListing {
   phone: string;
   contactName: string;
   createdAt: string;
+  verified: boolean;
 }
 
 const SUPABASE_URL = "https://wxwjsyhrykiexkkoyhoz.supabase.co";
@@ -46,6 +47,7 @@ export async function getFreightListings(): Promise<FreightListing[]> {
       phone: r.phone || "",
       contactName: r.contact_name || "",
       createdAt: String(r.created_at || ""),
+      verified: !!r.verified,
     }));
   } catch {
     return [];
@@ -53,7 +55,7 @@ export async function getFreightListings(): Promise<FreightListing[]> {
 }
 
 export async function addFreightListing(
-  data: Omit<FreightListing, "id" | "createdAt">
+  data: Omit<FreightListing, "id" | "createdAt" | "verified">
 ): Promise<FreightListing | null> {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/freight_listings`, {
@@ -89,9 +91,23 @@ export async function addFreightListing(
       phone: row.phone,
       contactName: row.contact_name || "",
       createdAt: row.created_at,
+      verified: !!row.verified,
     };
   } catch {
     return null;
+  }
+}
+
+export async function reportFreightListing(listingId: string, reason: string, phone: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/freight_reports`, {
+      method: "POST",
+      headers: { ...headers, "Prefer": "return=minimal" },
+      body: JSON.stringify({ listing_id: listingId, reason, phone }),
+    });
+    return res.ok;
+  } catch {
+    return false;
   }
 }
 

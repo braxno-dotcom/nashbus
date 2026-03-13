@@ -219,7 +219,12 @@
     "writeWhatsApp": "WhatsApp",
     "vehicleBus": "Microbuz",
     "vehicleTruck": "Camion",
-    "vehicleCar": "Autoturism"
+    "vehicleCar": "Autoturism",
+    "verified": "Verificat",
+    "report": "Reclamație",
+    "reportReason": "Descrieți motivul reclamației:",
+    "reportPhone": "Telefonul dvs. (opțional):",
+    "reportSuccess": "Reclamația a fost trimisă. Mulțumim!"
   },
   "languages": {
     "uk": "Українська",

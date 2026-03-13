@@ -219,7 +219,12 @@
     "writeWhatsApp": "WhatsApp",
     "vehicleBus": "Микроавтобус",
     "vehicleTruck": "Фура",
-    "vehicleCar": "Легковая"
+    "vehicleCar": "Легковая",
+    "verified": "Проверен",
+    "report": "Пожаловаться",
+    "reportReason": "Опишите причину жалобы:",
+    "reportPhone": "Ваш телефон (необязательно):",
+    "reportSuccess": "Жалоба отправлена. Спасибо!"
   },
   "languages": {
     "uk": "Українська",

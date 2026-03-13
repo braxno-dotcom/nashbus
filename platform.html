@@ -81,6 +81,7 @@
       <button class="pa-tab" onclick="switchTab('passengers')">Пассажиры</button>
       <button class="pa-tab" onclick="switchTab('messages')">Обращения</button>
       <button class="pa-tab" onclick="switchTab('codes')">Коды</button>
+      <button class="pa-tab" onclick="switchTab('freight')">Грузоперевозки</button>
     </div>
 
     <!-- Dashboard -->
@@ -178,6 +179,19 @@
       </div>
     </div>
 
+    <!-- Freight -->
+    <div id="tab-freight" style="display:none">
+      <div class="pa-grid" id="freight-stats"></div>
+      <div class="pa-section">
+        <h3>Объявления грузоперевозок</h3>
+        <div id="freight-list"></div>
+      </div>
+      <div class="pa-section">
+        <h3>Жалобы на перевозчиков</h3>
+        <div id="freight-reports-list"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -213,15 +227,16 @@ var MONTHS = ["Январь","Февраль","Март","Апрель","Май"
 
 // ==================== Tabs ====================
 function switchTab(name) {
-  ["dashboard","drivers","routes","passengers","messages","codes"].forEach(function(t) {
+  ["dashboard","drivers","routes","passengers","messages","codes","freight"].forEach(function(t) {
     document.getElementById("tab-" + t).style.display = t === name ? "" : "none";
   });
   document.querySelectorAll(".pa-tab").forEach(function(btn, i) {
-    var tabs = ["dashboard","drivers","routes","passengers","messages","codes"];
+    var tabs = ["dashboard","drivers","routes","passengers","messages","codes","freight"];
     btn.classList.toggle("active", tabs[i] === name);
   });
   if (name === "messages") renderMessages();
   if (name === "codes") loadCodes();
+  if (name === "freight") loadFreight();
 }
 
 // ==================== Load Data ====================
@@ -614,6 +629,146 @@ async function deleteCode(id) {
   if (!confirm("Удалить этот код доступа?")) return;
   await sb.from("driver_codes").delete().eq("id", id);
   await loadCodes();
+}
+
+// ==================== Freight ====================
+var allFreight = [];
+var allFreightClicks = [];
+var allFreightReports = [];
+
+async function loadFreight() {
+  var [fRes, cRes, rRes] = await Promise.all([
+    sb.from("freight_listings").select("*").order("created_at", { ascending: false }),
+    sb.from("freight_clicks").select("*"),
+    sb.from("freight_reports").select("*").order("created_at", { ascending: false })
+  ]);
+  allFreight = fRes.data || [];
+  allFreightClicks = cRes.data || [];
+  allFreightReports = rRes.data || [];
+  renderFreight();
+  renderFreightReports();
+}
+
+function renderFreight() {
+  // Click stats per listing
+  var clickMap = {};
+  allFreightClicks.forEach(function(c) {
+    if (!clickMap[c.listing_id]) clickMap[c.listing_id] = { call: 0, whatsapp: 0, viber: 0 };
+    clickMap[c.listing_id][c.click_type]++;
+  });
+
+  // Report counts per listing
+  var reportMap = {};
+  allFreightReports.forEach(function(r) {
+    reportMap[r.listing_id] = (reportMap[r.listing_id] || 0) + 1;
+  });
+
+  var totalListings = allFreight.length;
+  var totalClicks = allFreightClicks.length;
+  var totalReports = allFreightReports.length;
+  var verified = allFreight.filter(function(f) { return f.verified; }).length;
+
+  document.getElementById("freight-stats").innerHTML =
+    card(totalListings, "Объявлений", "#d97706", "#fffbeb") +
+    card(totalClicks, "Кликов (связь)", "#2563eb", "#eff6ff") +
+    card(verified, "Проверенных", "#16a34a", "#f0fdf4") +
+    card(totalReports, "Жалоб", "#dc2626", "#fef2f2");
+
+  var list = document.getElementById("freight-list");
+  if (allFreight.length === 0) {
+    list.innerHTML = '<p class="pa-empty">Объявлений пока нет</p>';
+    return;
+  }
+
+  var typeNames = { seek_carrier: "Ищет перевозчика", offer_carrier: "Перевозчик" };
+  var typeColors = { seek_carrier: "#eff6ff;color:#2563eb", offer_carrier: "#f0fdf4;color:#16a34a" };
+
+  list.innerHTML = allFreight.map(function(f) {
+    var clicks = clickMap[f.id] || { call: 0, whatsapp: 0, viber: 0 };
+    var reports = reportMap[f.id] || 0;
+    var date = f.created_at ? new Date(f.created_at).toLocaleDateString("ru") : "";
+    var tn = typeNames[f.listing_type] || f.listing_type;
+    var tc = typeColors[f.listing_type] || typeColors.seek_carrier;
+
+    return '<div class="pa-msg">' +
+      '<div class="pa-msg-header">' +
+        '<div style="display:flex;align-items:center;gap:6px">' +
+          '<span class="pa-msg-type" style="background:' + tc + '">' + tn + '</span>' +
+          (f.verified ? '<span style="font-size:9px;font-weight:700;color:#16a34a;background:#f0fdf4;padding:1px 5px;border-radius:3px">✓ Проверен</span>' : '') +
+          (reports > 0 ? '<span style="font-size:9px;font-weight:700;color:#dc2626;background:#fef2f2;padding:1px 5px;border-radius:3px">⚠ ' + reports + ' жалоб</span>' : '') +
+        '</div>' +
+        '<span class="pa-msg-date">' + date + '</span>' +
+      '</div>' +
+      '<div style="font-size:12px;font-weight:700;color:#1f2937;margin:4px 0">' + (f.from_city || "") + ' → ' + (f.to_city || "") + '</div>' +
+      '<div style="font-size:10px;color:#6b7280;margin-bottom:4px">' +
+        (f.contact_name ? f.contact_name + ' · ' : '') +
+        (f.phone || "") +
+        (f.trip_date ? ' · ' + f.trip_date : '') +
+        (f.description ? ' · ' + f.description : '') +
+        (f.vehicle_type ? ' · ' + f.vehicle_type : '') +
+        (f.price ? ' · ' + f.price : '') +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">' +
+        '<span style="font-size:9px;color:#64748b">📞 ' + clicks.call + '</span>' +
+        '<span style="font-size:9px;color:#22c55e">WA ' + clicks.whatsapp + '</span>' +
+        '<span style="font-size:9px;color:#8b5cf6">Viber ' + clicks.viber + '</span>' +
+      '</div>' +
+      '<div style="display:flex;gap:4px">' +
+        (f.verified
+          ? '<button class="pa-btn pa-btn-red" onclick="toggleFreightVerify(\'' + f.id + '\',false)">Снять ✓</button>'
+          : '<button class="pa-btn pa-btn-green" onclick="toggleFreightVerify(\'' + f.id + '\',true)">✓ Проверен</button>'
+        ) +
+        '<button class="pa-btn pa-btn-red" onclick="deleteFreightListing(\'' + f.id + '\')">Удалить</button>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+function renderFreightReports() {
+  var list = document.getElementById("freight-reports-list");
+  if (allFreightReports.length === 0) {
+    list.innerHTML = '<p class="pa-empty">Жалоб нет</p>';
+    return;
+  }
+
+  // Map listing info
+  var listingMap = {};
+  allFreight.forEach(function(f) { listingMap[f.id] = (f.from_city || "") + " → " + (f.to_city || "") + " (" + (f.contact_name || f.phone || "") + ")"; });
+
+  list.innerHTML = allFreightReports.map(function(r) {
+    var date = r.created_at ? new Date(r.created_at).toLocaleDateString("ru") : "";
+    var listing = listingMap[r.listing_id] || r.listing_id;
+    return '<div class="pa-msg">' +
+      '<div class="pa-msg-header">' +
+        '<span class="pa-msg-name">' + listing + '</span>' +
+        '<div style="display:flex;align-items:center;gap:6px">' +
+          '<span class="pa-msg-date">' + date + '</span>' +
+          '<button class="pa-btn pa-btn-red" style="padding:2px 6px" onclick="deleteFreightReport(\'' + r.id + '\')">✕</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="pa-msg-text">' + (r.reason || "") + '</div>' +
+      (r.phone ? '<div style="font-size:9px;color:#9ca3af;margin-top:2px">Контакт: ' + r.phone + '</div>' : '') +
+    '</div>';
+  }).join("");
+}
+
+async function toggleFreightVerify(id, verified) {
+  await sb.from("freight_listings").update({ verified: verified }).eq("id", id);
+  await loadFreight();
+}
+
+async function deleteFreightListing(id) {
+  if (!confirm("Удалить это объявление и все связанные данные?")) return;
+  await sb.from("freight_clicks").delete().eq("listing_id", id);
+  await sb.from("freight_reports").delete().eq("listing_id", id);
+  await sb.from("freight_listings").delete().eq("id", id);
+  await loadFreight();
+}
+
+async function deleteFreightReport(id) {
+  await sb.from("freight_reports").delete().eq("id", id);
+  allFreightReports = allFreightReports.filter(function(r) { return r.id !== id; });
+  renderFreightReports();
 }
 
 // ==================== Init ====================
