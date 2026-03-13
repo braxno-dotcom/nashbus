@@ -39,7 +39,15 @@
     "route": "Маршрут",
     "noResults": "Рейсы не найдены",
     "seatsLeft": "Мест: {left} из {total}",
-    "noSeats": "Мест нет"
+    "noSeats": "Мест нет",
+    "bookName": "Ваше имя",
+    "bookPhone": "Ваш телефон",
+    "bookSeats": "Мест",
+    "bookSubmit": "Подтвердить бронь",
+    "bookCancel": "Отмена",
+    "bookSuccess": "Бронь принята! Водитель свяжется с вами.",
+    "bookWhatsApp": "Написать водителю в WhatsApp",
+    "bookError": "Ошибка. Попробуйте ещё раз."
   },
   "ad": {
     "title": "Страховка для путешествий",

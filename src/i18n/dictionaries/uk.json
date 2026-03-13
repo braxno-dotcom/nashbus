@@ -39,7 +39,15 @@
     "route": "Маршрут",
     "noResults": "Рейсів не знайдено",
     "seatsLeft": "Місць: {left} з {total}",
-    "noSeats": "Місць немає"
+    "noSeats": "Місць немає",
+    "bookName": "Ваше ім'я",
+    "bookPhone": "Ваш телефон",
+    "bookSeats": "Місць",
+    "bookSubmit": "Підтвердити бронь",
+    "bookCancel": "Скасувати",
+    "bookSuccess": "Бронь прийнята! Водій з вами зв'яжеться.",
+    "bookWhatsApp": "Написати водію в WhatsApp",
+    "bookError": "Помилка. Спробуйте ще раз."
   },
   "ad": {
     "title": "Страховка для подорожей",

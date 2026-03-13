@@ -39,7 +39,15 @@
     "route": "Traseu",
     "noResults": "Nu s-au găsit curse",
     "seatsLeft": "Locuri: {left} din {total}",
-    "noSeats": "Nu mai sunt locuri"
+    "noSeats": "Nu mai sunt locuri",
+    "bookName": "Numele dvs.",
+    "bookPhone": "Telefonul dvs.",
+    "bookSeats": "Locuri",
+    "bookSubmit": "Confirmați rezervarea",
+    "bookCancel": "Anulare",
+    "bookSuccess": "Rezervare acceptată! Șoferul vă va contacta.",
+    "bookWhatsApp": "Scrieți șoferului pe WhatsApp",
+    "bookError": "Eroare. Încercați din nou."
   },
   "ad": {
     "title": "Asigurare de călătorie",
