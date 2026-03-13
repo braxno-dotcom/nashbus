@@ -38,7 +38,7 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
   const [submitting, setSubmitting] = useState(false);
   const [paxName, setPaxName] = useState("");
   const [paxPhone, setPaxPhone] = useState("");
-  const [paxSeats, setPaxSeats] = useState("1");
+  const [paxSeats, setPaxSeats] = useState("");
 
   const cities = dict.cities as Record<string, string>;
   const t = dict.trips as Record<string, string>;
@@ -225,7 +225,9 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
                   onChange={(e) => setPaxSeats(e.target.value)}
                   min="1"
                   max={seatsLeft > 0 ? seatsLeft : 1}
-                  className="w-20 px-3 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-xs focus:outline-none focus:border-blue-500"
+                  placeholder="1"
+                  required
+                  className="w-20 px-3 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-xs placeholder-gray-400 focus:outline-none focus:border-blue-500"
                 />
               </div>
               <button

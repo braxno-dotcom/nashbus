@@ -51,7 +51,7 @@ export default function AddTripForm({ dict, driverId, driverName, driverLogoUrl,
   const [busNumber, setBusNumber] = useState("");
   const [price, setPrice] = useState("");
   const [seats, setSeats] = useState("");
-  const [totalSeats, setMaxSeats] = useState("20");
+  const [totalSeats, setMaxSeats] = useState("");
   const [phone, setPhone] = useState("");
   const [waypoints, setWaypoints] = useState<string[]>([]);
   const [logoUrl, setLogoUrl] = useState("");
