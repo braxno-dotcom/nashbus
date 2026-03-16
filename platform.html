@@ -278,16 +278,17 @@ var MONTHS = ["Январь","Февраль","Март","Апрель","Май"
 
 // ==================== Tabs ====================
 function switchTab(name) {
-  ["dashboard","drivers","routes","passengers","messages","codes","freight"].forEach(function(t) {
+  ["dashboard","drivers","routes","passengers","messages","codes","freight","import"].forEach(function(t) {
     document.getElementById("tab-" + t).style.display = t === name ? "" : "none";
   });
   document.querySelectorAll(".pa-tab").forEach(function(btn, i) {
-    var tabs = ["dashboard","drivers","routes","passengers","messages","codes","freight"];
+    var tabs = ["dashboard","drivers","routes","passengers","messages","codes","freight","import"];
     btn.classList.toggle("active", tabs[i] === name);
   });
   if (name === "messages") renderMessages();
   if (name === "codes") loadCodes();
   if (name === "freight") loadFreight();
+  if (name === "import") loadCompaniesForImport();
 }
 
 // ==================== Load Data ====================
