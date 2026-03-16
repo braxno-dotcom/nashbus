@@ -49,15 +49,29 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
   const fullRouteNames = fullRoute.map((key) => cities[key] || key);
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${trip.pickupLat},${trip.pickupLng}`;
-  const phone = trip.phone.replace(/[^0-9+]/g, "");
-  const phoneClean = phone.replace(/[^0-9]/g, "");
+
+  // Parse multiple phones: split by comma, semicolon, or slash
+  const phones = trip.phone
+    .split(/[,;/]/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => {
+      const clean = p.replace(/[^0-9+]/g, "");
+      const digits = clean.replace(/[^0-9]/g, "");
+      return { display: p.trim(), clean, digits };
+    })
+    .filter((p) => p.digits.length >= 7);
+
+  const mainPhone = phones[0] || { display: trip.phone, clean: trip.phone.replace(/[^0-9+]/g, ""), digits: trip.phone.replace(/[^0-9]/g, "") };
 
   const messageText = t.bookMessage
     .replace("{from}", from)
     .replace("{to}", to)
     .replace("{date}", trip.date);
 
-  const waUrl = `https://wa.me/${phoneClean}?text=${encodeURIComponent(messageText)}`;
+  const waUrl = `https://wa.me/${mainPhone.digits}?text=${encodeURIComponent(messageText)}`;
+  const viberUrl = `viber://chat?number=${encodeURIComponent(mainPhone.clean)}`;
+  const callUrl = `tel:${mainPhone.clean}`;
 
   const totalSeats = trip.maxSeats || trip.seats || 20;
   const booked = trip.bookedSeats || 0;
@@ -266,6 +280,32 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
         </div>
       )}
 
+      {/* Contact buttons */}
+      <div className="flex gap-1 mb-1.5 flex-wrap">
+        <a href={callUrl} className="py-1.5 px-2.5 rounded bg-gray-700 text-white text-[10px] font-bold hover:bg-gray-800 active:scale-95 transition-all flex items-center gap-1">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+          {mainPhone.display}
+        </a>
+        <a href={waUrl} target="_blank" rel="noopener noreferrer" className="py-1.5 px-2.5 rounded bg-green-500 text-white text-[10px] font-bold hover:bg-green-600 active:scale-95 transition-all flex items-center gap-1">
+          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+          WhatsApp
+        </a>
+        <a href={viberUrl} className="py-1.5 px-2.5 rounded text-white text-[10px] font-bold hover:opacity-90 active:scale-95 transition-all flex items-center gap-1" style={{background: "#7360f2"}}>
+          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M11.4 0C9.473.028 5.333.344 3.02 2.467 1.302 4.187.6 6.7.52 9.867c-.08 3.167-.18 9.093 5.56 10.573h.007l-.007 2.427s-.04.98.607 1.18c.778.24 1.236-.5 1.98-1.3.407-.44.967-1.087 1.387-1.58 3.82.32 6.76-.413 7.093-.527.773-.26 5.14-.807 5.853-6.587.74-5.953-.353-9.72-2.22-11.4 0 0 0-.003 0-.003-.56-.533-2.8-2.013-7.38-2.187 0 0-.36-.02-.853-.04-.16-.007-.327-.007-.507-.007v.004zM11.52 1.6h.413c.4.013.76.033.76.033 4.14.16 6.12 1.387 6.6 1.84h.007c1.567 1.4 2.467 4.78 1.82 9.96-.6 4.78-4.087 5.147-4.74 5.367-.28.093-2.88.727-6.2.533 0 0-2.453 2.96-3.22 3.733-.12.12-.26.167-.353.147-.133-.027-.167-.18-.167-.393l.027-4.093c-4.88-1.253-4.593-6.28-4.527-8.947.067-2.667.633-4.867 2.107-6.327 1.96-1.807 5.56-2.073 7.473-2.1v.247zM12 5.06c-.2 0-.2.307 0 .313 1.513.073 2.793.587 3.773 1.467 1.08.973 1.593 2.227 1.653 3.88.007.2.313.193.307 0-.067-1.773-.627-3.14-1.813-4.2-1.06-.96-2.453-1.533-4.107-1.46h.187zm-3.46.98c-.36-.007-.74.12-1.04.367-.56.453-.607 1.08-.447 1.347.533 1.053 1.107 1.56 1.8 2.413.76.94 1.72 1.867 2.867 2.693.253.18.5.347.74.5 0 0 .013.007.04.02l.013.007h.007c.893.553 1.633.753 2.327.973l.073.02c.133.04.267.047.4.04.627-.047 1.087-.44 1.2-.927.047-.2.013-.407-.06-.587-.353-.727-.78-.98-1.347-1.333l-.2-.127c-.413-.28-.607-.307-.953-.087l-.46.367c-.32.233-.627.173-.627.173l-.013.007c-2-.513-3.307-2.06-3.573-2.4l-.007-.007s-.06-.313.18-.627l.293-.527c.173-.373.107-.553-.22-.927l-.16-.2c-.407-.5-.7-.84-1.22-1.413-.16-.173-.373-.26-.593-.267zM12.72 6c-.2-.02-.22.287-.02.307 1.053.127 1.88.573 2.533 1.253.64.66.96 1.467 1.007 2.473.007.2.32.18.307-.02-.047-1.093-.407-2.013-1.12-2.74-.72-.74-1.627-1.2-2.793-1.34h.087v.067zm.107 1.04c-.207-.013-.227.28-.02.307.767.127 1.4.427 1.847.947.447.52.647 1.1.627 1.84-.007.2.3.207.307.007.027-.84-.2-1.52-.72-2.113-.52-.587-1.253-.92-2.12-1.047h.08v.06z"/></svg>
+          Viber
+        </a>
+      </div>
+      {/* Extra phones */}
+      {phones.length > 1 && (
+        <div className="flex gap-1 mb-1.5 flex-wrap">
+          {phones.slice(1).map((p, i) => (
+            <a key={i} href={`tel:${p.clean}`} className="py-1 px-2 rounded bg-gray-100 text-gray-700 text-[9px] font-semibold hover:bg-gray-200 transition-all flex items-center gap-1">
+              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+              {p.display}
+            </a>
+          ))}
+        </div>
+      )}
       {/* Actions */}
       <div className="flex gap-1.5">
         {trip.pickupLat !== 0 && (
