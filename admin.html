@@ -759,7 +759,7 @@ async function saveTrip(e) {
     carrierId = driverSel.value;
     carrierName = driverSel.options[driverSel.selectedIndex].textContent;
   } else {
-    carrierId = document.getElementById("f-carrier-id").value.trim().toLowerCase();
+    carrierId = document.getElementById("f-carrier-id").value.trim();
     carrierName = document.getElementById("f-carrier").value;
   }
   var trip = {
@@ -1118,7 +1118,10 @@ setupAC("f-waypoints", "ac-wp", true);
 async function sbLoadTripsFiltered() {
   if (dispatcherInfo) {
     var ids = (dispatcherInfo.allIds || []).slice();
-    if (dispatcherInfo.companyId) ids.push(dispatcherInfo.companyId);
+    if (dispatcherInfo.companyId) {
+      ids.push(dispatcherInfo.companyId);
+      ids.push(dispatcherInfo.companyId.toLowerCase());
+    }
     var { data, error } = await sb.from("routes").select("*").in("carrier_id", ids).order("created_at");
     if (error) { console.error("Load error:", error); return []; }
     return data.map(dbToTrip);
