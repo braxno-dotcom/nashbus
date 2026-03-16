@@ -878,6 +878,12 @@ function cancelEdit() {
   document.getElementById("f-logo").value = "";
   document.getElementById("logo-preview").innerHTML = "";
   document.getElementById("upload-status").textContent = "";
+  // Restore company fields after form reset (dispatcher mode)
+  if (dispatcherInfo) {
+    document.getElementById("f-carrier").value = dispatcherInfo.name || "";
+    document.getElementById("f-carrier-id").value = dispatcherInfo.companyId;
+    document.getElementById("f-phone").value = dispatcherInfo.phone || "";
+  }
 }
 
 // ==================== Stats Modal ====================
@@ -1262,8 +1268,10 @@ async function initDispatcherPage() {
     });
   }
   document.getElementById("driver-select-wrap").style.display = "";
-  // Pre-fill company info
+  // Pre-fill company info — name and ID are always set from dispatcher record
+  document.getElementById("f-carrier").value = dispatcherInfo.name || "";
   document.getElementById("f-carrier-id").value = dispatcherInfo.companyId;
+  document.getElementById("f-phone").value = dispatcherInfo.phone || "";
   onDriverSelect();
 
   // Load filtered data (trips first, then bookings which depend on trips)

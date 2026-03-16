@@ -163,7 +163,7 @@
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
             <input type="text" id="code-company-id" placeholder="ID компании (необязательно)" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px">
-            <select id="code-role" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px">
+            <select id="code-role" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px" onchange="document.getElementById('code-driver-name').placeholder = this.value === 'dispatcher' ? 'Название перевозчика' : 'Имя водителя'">
               <option value="driver">Водитель</option>
               <option value="dispatcher">Диспетчер</option>
             </select>
@@ -566,9 +566,8 @@ async function createCode() {
   var companyId = document.getElementById("code-company-id").value.trim() || null;
   var role = document.getElementById("code-role").value || "driver";
   var days = parseInt(document.getElementById("code-duration").value) || 365;
-  if (!name && role !== 'dispatcher') { alert("Введите имя водителя"); return; }
+  if (!name) { alert(role === 'dispatcher' ? "Введите название перевозчика" : "Введите имя водителя"); return; }
   if (role === 'dispatcher' && !companyId) { alert("Для диспетчера укажите ID компании"); return; }
-  if (role === 'dispatcher' && !name) name = "Диспетчер " + companyId;
 
   var code = generateCode();
   var expiresAt = new Date();
