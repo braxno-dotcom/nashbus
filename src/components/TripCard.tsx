@@ -9,6 +9,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 interface Trip {
   id: string;
+  carrierId?: string;
   carrier: string;
   companyName?: string;
   fromKey: string;
@@ -72,6 +73,9 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
   const waUrl = `https://wa.me/${mainPhone.digits}?text=${encodeURIComponent(messageText)}`;
   const viberUrl = `viber://chat?number=${encodeURIComponent(mainPhone.clean)}`;
   const callUrl = `tel:${mainPhone.clean}`;
+
+  // Vitrina mode: carrier_id is not a UUID = company listing, no booking
+  const isVitrina = !trip.carrierId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trip.carrierId);
 
   const totalSeats = trip.maxSeats || trip.seats || 20;
   const booked = trip.bookedSeats || 0;
@@ -153,7 +157,7 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
 
       {/* Badges + Route button */}
       <div className="flex gap-1 mb-2 flex-wrap">
-        {seatsLeft > 0 ? (
+        {!isVitrina && (seatsLeft > 0 ? (
           <span className="bg-gray-50 text-gray-500 px-1.5 py-px rounded text-[10px]">
             {t.seatsLeft
               ?.replace("{left}", String(seatsLeft))
@@ -163,7 +167,7 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
           <span className="bg-red-50 text-red-600 px-1.5 py-px rounded text-[10px] font-bold">
             {t.noSeats || "No seats"}
           </span>
-        )}
+        ))}
         {trip.parcels && (
           <span className="bg-green-50 text-green-600 px-1.5 py-px rounded text-[10px]">
             {t.parcels}
@@ -201,8 +205,8 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
         </div>
       )}
 
-      {/* Booking modal */}
-      {formOpen && !confirmed && (
+      {/* Booking modal (only for individual drivers, not vitrina) */}
+      {!isVitrina && formOpen && !confirmed && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={(e) => { if (e.target === e.currentTarget) setFormOpen(false); }}>
           <div className="absolute inset-0 bg-black/50" />
           <div className="relative bg-white w-full max-w-sm rounded-xl p-4 mx-4">
@@ -257,7 +261,7 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
       )}
 
       {/* Booking confirmation */}
-      {confirmed && (
+      {!isVitrina && confirmed && (
         <div className="bg-green-50 rounded-lg p-3 mb-2 text-center">
           <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
             <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -323,7 +327,7 @@ export default function TripCard({ trip, dict }: { trip: Trip; dict: Dict }) {
           </a>
         )}
 
-        {!confirmed && (
+        {!isVitrina && !confirmed && (
           <button
             onClick={() => setFormOpen(!formOpen)}
             disabled={seatsLeft <= 0}

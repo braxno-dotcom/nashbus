@@ -73,6 +73,7 @@ interface BookingCount {
 function rowToTrip(row: RouteRow, bookedSeats: number, companyName?: string): Trip {
   return {
     id: row.id,
+    carrierId: row.carrier_id,
     carrier: row.carrier,
     companyName: companyName || "",
     fromKey: row.from_key,
