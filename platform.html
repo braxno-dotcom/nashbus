@@ -85,6 +85,7 @@
       <button class="pa-tab" onclick="switchTab('messages')">Обращения</button>
       <button class="pa-tab" onclick="switchTab('codes')">Коды</button>
       <button class="pa-tab" onclick="switchTab('freight')">Грузоперевозки</button>
+      <button class="pa-tab" onclick="switchTab('import')">Импорт</button>
     </div>
 
     <!-- Dashboard -->
@@ -179,6 +180,53 @@
           </div>
         </div>
         <div id="codes-list"></div>
+      </div>
+    </div>
+
+    <!-- Import -->
+    <div id="tab-import" style="display:none">
+      <div class="pa-section">
+        <h3>Импорт рейсов компании</h3>
+        <p style="font-size:11px;color:#6b7280;margin-bottom:12px">Загрузите CSV-файл с расписанием. Все рейсы будут привязаны к выбранной компании.</p>
+
+        <div style="background:#f9fafb;border-radius:8px;padding:12px;margin-bottom:12px">
+          <div style="margin-bottom:8px">
+            <label style="font-size:10px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Компания (диспетчер)</label>
+            <select id="import-company" style="width:100%;padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px">
+              <option value="">Загрузка...</option>
+            </select>
+          </div>
+          <div style="margin-bottom:8px">
+            <label style="font-size:10px;font-weight:600;color:#374151;display:block;margin-bottom:4px">CSV-файл</label>
+            <input type="file" id="import-file" accept=".csv,.tsv,.txt" style="font-size:11px" onchange="previewImport()">
+          </div>
+          <div style="background:#eff6ff;border-radius:6px;padding:8px;margin-bottom:8px">
+            <p style="font-size:10px;font-weight:600;color:#1e40af;margin-bottom:4px">Формат CSV (разделитель — точка с запятой или запятая):</p>
+            <code style="font-size:9px;color:#1e40af;display:block;word-break:break-all">Откуда;Куда;Промежуточные;Дни;Время отпр.;Время приб.;Цена;Телефон(ы)</code>
+            <p style="font-size:9px;color:#3b82f6;margin-top:4px">Города: kyiv, warsaw, lviv, krakow, prague, berlin, paris, odesa, chisinau, lublin, rzeszow...</p>
+            <p style="font-size:9px;color:#3b82f6">Дни: Пн,Вт,Ср,Чт,Пт,Сб,Вс — или конкретная дата (15.04.2026)</p>
+          </div>
+        </div>
+
+        <div id="import-preview" style="display:none;margin-bottom:12px">
+          <h4 style="font-size:11px;font-weight:700;color:#1f2937;margin-bottom:8px">Превью: <span id="import-count">0</span> рейсов</h4>
+          <div style="overflow-x:auto">
+            <table class="pa-table" id="import-table">
+              <thead><tr>
+                <th>Откуда</th><th>Куда</th><th>Промежуточные</th><th>Дата</th><th>Отпр.</th><th>Приб.</th><th>Цена</th><th>Тел.</th>
+              </tr></thead>
+              <tbody id="import-tbody"></tbody>
+            </table>
+          </div>
+          <button onclick="executeImport()" style="margin-top:8px;background:#16a34a;color:#fff;font-size:11px;font-weight:600;padding:8px 20px;border-radius:6px;border:none;cursor:pointer;width:100%">Загрузить все рейсы</button>
+        </div>
+
+        <div id="import-result" style="display:none"></div>
+
+        <div class="pa-section" style="margin-top:16px">
+          <h4 style="font-size:11px;font-weight:700;color:#1f2937;margin-bottom:4px">Скачать шаблон</h4>
+          <button onclick="downloadTemplate()" style="font-size:10px;font-weight:600;background:#2563eb;color:#fff;border:none;border-radius:5px;padding:5px 12px;cursor:pointer">Скачать CSV-шаблон</button>
+        </div>
       </div>
     </div>
 
@@ -775,8 +823,203 @@ async function deleteFreightReport(id) {
   renderFreightReports();
 }
 
+// ==================== Import ====================
+var CITY_NAMES = {
+  // Ukrainian
+  "київ":"kyiv","одеса":"odesa","львів":"lviv","чернівці":"chernivtsi","тернопіль":"ternopil",
+  "вінниця":"vinnytsya","житомир":"zhytomyr","дніпро":"dnipro","миколаїв":"mykolaiv",
+  "івано-франківськ":"ivanofrankivsk","франківськ":"ivanofrankivsk",
+  // Russian
+  "киев":"kyiv","одесса":"odesa","львов":"lviv","черновцы":"chernivtsi","тернополь":"ternopil",
+  "винница":"vinnytsya","житомир":"zhytomyr","днепр":"dnipro","николаев":"mykolaiv",
+  "ивано-франковск":"ivanofrankivsk","франковск":"ivanofrankivsk",
+  // European cities UA/RU
+  "варшава":"warsaw","краків":"krakow","краков":"krakow","прага":"prague",
+  "берлін":"berlin","берлин":"berlin","париж":"paris","мадрид":"madrid",
+  "братислава":"bratislava","будапешт":"budapest","відень":"vienna","вена":"vienna",
+  "мюнхен":"munich","нюрнберг":"nuremberg","франкфурт":"frankfurt","страсбург":"strasbourg",
+  "катовіце":"katowice","катовице":"katowice","вроцлав":"wroclaw",
+  "люблін":"lublin","люблин":"lublin","жешув":"rzeszow",
+  "кишинів":"chisinau","кишинев":"chisinau","тирасполь":"tiraspol",
+  "яси":"iasi","ясси":"iasi","сучава":"suceava","сірет":"siret","сирет":"siret",
+  // Already keys
+  "kyiv":"kyiv","odesa":"odesa","lviv":"lviv","warsaw":"warsaw","krakow":"krakow",
+  "prague":"prague","berlin":"berlin","paris":"paris","madrid":"madrid",
+  "bratislava":"bratislava","budapest":"budapest","vienna":"vienna",
+  "munich":"munich","nuremberg":"nuremberg","frankfurt":"frankfurt","strasbourg":"strasbourg",
+  "katowice":"katowice","wroclaw":"wroclaw","lublin":"lublin","rzeszow":"rzeszow",
+  "chisinau":"chisinau","tiraspol":"tiraspol","iasi":"iasi","suceava":"suceava","siret":"siret",
+  "chernivtsi":"chernivtsi","ternopil":"ternopil","vinnytsya":"vinnytsya","zhytomyr":"zhytomyr",
+  "dnipro":"dnipro","mykolaiv":"mykolaiv","ivanofrankivsk":"ivanofrankivsk"
+};
+
+function cityToKey(name) {
+  if (!name) return "";
+  var key = CITY_NAMES[name.trim().toLowerCase()];
+  if (key) return key;
+  // Fallback: use as-is lowercase, replace spaces with underscore
+  return name.trim().toLowerCase().replace(/\s+/g, "_");
+}
+
+var DAY_MAP = {"пн":1,"вт":2,"ср":3,"чт":4,"пт":5,"сб":6,"вс":0,"нд":0,
+  "mon":1,"tue":2,"wed":3,"thu":4,"fri":5,"sat":6,"sun":0};
+
+var importRows = [];
+
+async function loadCompaniesForImport() {
+  var { data } = await sb.from("driver_codes").select("id,driver_name,company_id,phone,role").eq("is_active", true).eq("role", "dispatcher");
+  var sel = document.getElementById("import-company");
+  sel.innerHTML = '<option value="">— Выберите компанию —</option>';
+  (data || []).forEach(function(c) {
+    var opt = document.createElement("option");
+    opt.value = c.company_id;
+    opt.setAttribute("data-name", c.driver_name);
+    opt.setAttribute("data-phone", c.phone || "");
+    opt.textContent = c.driver_name + " (" + c.company_id + ")";
+    sel.appendChild(opt);
+  });
+}
+
+function parseCSV(text) {
+  var lines = text.trim().split(/\r?\n/);
+  // Detect separator
+  var sep = lines[0].indexOf(";") >= 0 ? ";" : ",";
+  // Skip header if it looks like one
+  var start = 0;
+  var first = lines[0].toLowerCase();
+  if (first.indexOf("откуда") >= 0 || first.indexOf("from") >= 0 || first.indexOf("звідки") >= 0) start = 1;
+  var rows = [];
+  for (var i = start; i < lines.length; i++) {
+    var cols = lines[i].split(sep).map(function(c) { return c.trim().replace(/^"|"$/g, ""); });
+    if (cols.length < 5 || !cols[0]) continue;
+    rows.push({
+      from: cityToKey(cols[0]),
+      to: cityToKey(cols[1]),
+      waypoints: cols[2] ? cols[2].split(/[,|]/).map(function(w) { return cityToKey(w.trim()); }).filter(Boolean) : [],
+      days: cols[3] || "",
+      departure: cols[4] || "",
+      arrival: cols[5] || "",
+      price: cols[6] || "",
+      phone: cols[7] || ""
+    });
+  }
+  return rows;
+}
+
+function expandDaysToTrips(rows) {
+  var trips = [];
+  rows.forEach(function(r) {
+    // Check if days is a specific date (dd.mm.yyyy)
+    if (/^\d{2}\.\d{2}\.\d{4}$/.test(r.days)) {
+      trips.push(Object.assign({}, r, { date: r.days }));
+      return;
+    }
+    // Parse day names → generate trips for next 4 weeks
+    var dayNums = r.days.split(/[,\s]+/).map(function(d) { return DAY_MAP[d.toLowerCase().trim()]; }).filter(function(d) { return d !== undefined; });
+    if (dayNums.length === 0) {
+      // Treat as daily
+      dayNums = [0,1,2,3,4,5,6];
+    }
+    var today = new Date();
+    for (var w = 0; w < 4; w++) {
+      dayNums.forEach(function(dayNum) {
+        var d = new Date(today);
+        var diff = (dayNum - d.getDay() + 7) % 7 + w * 7;
+        if (diff === 0 && w === 0) diff = 7; // skip today, start from next occurrence
+        d.setDate(d.getDate() + diff);
+        var dd = String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + d.getFullYear();
+        trips.push(Object.assign({}, r, { date: dd }));
+      });
+    }
+  });
+  return trips;
+}
+
+function previewImport() {
+  var file = document.getElementById("import-file").files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var parsed = parseCSV(e.target.result);
+    importRows = expandDaysToTrips(parsed);
+    document.getElementById("import-count").textContent = importRows.length;
+    var tbody = document.getElementById("import-tbody");
+    tbody.innerHTML = importRows.slice(0, 50).map(function(r) {
+      return "<tr><td>" + r.from + "</td><td>" + r.to + "</td><td>" + (r.waypoints || []).join(", ") + "</td><td>" + r.date + "</td><td>" + r.departure + "</td><td>" + r.arrival + "</td><td>" + r.price + "</td><td style='font-size:9px'>" + r.phone + "</td></tr>";
+    }).join("");
+    if (importRows.length > 50) tbody.innerHTML += "<tr><td colspan='8' style='text-align:center;color:#6b7280'>... ещё " + (importRows.length - 50) + " рейсов</td></tr>";
+    document.getElementById("import-preview").style.display = "";
+    document.getElementById("import-result").style.display = "none";
+  };
+  reader.readAsText(file);
+}
+
+async function executeImport() {
+  var sel = document.getElementById("import-company");
+  var opt = sel.options[sel.selectedIndex];
+  if (!sel.value) { alert("Выберите компанию"); return; }
+  if (importRows.length === 0) { alert("Нет рейсов для загрузки"); return; }
+
+  var carrierId = sel.value;
+  var carrierName = opt.getAttribute("data-name");
+  var defaultPhone = opt.getAttribute("data-phone");
+
+  var records = importRows.map(function(r) {
+    return {
+      carrier_id: carrierId,
+      carrier: carrierName,
+      from_key: r.from,
+      to_key: r.to,
+      waypoints: r.waypoints || [],
+      trip_date: r.date,
+      departure: r.departure,
+      arrival: r.arrival || "",
+      duration: "",
+      price: r.price,
+      seats: 50,
+      total_seats: 50,
+      parcels: false,
+      pickup_lat: 0,
+      pickup_lng: 0,
+      phone: r.phone || defaultPhone,
+      wifi: false, power_outlets: false, ac: false, toilet: false, luggage: false, pets: false,
+      logo_url: ""
+    };
+  });
+
+  // Insert in batches of 50
+  var ok = 0;
+  var fail = 0;
+  for (var i = 0; i < records.length; i += 50) {
+    var batch = records.slice(i, i + 50);
+    var { error } = await sb.from("routes").insert(batch);
+    if (error) { fail += batch.length; console.error("Import batch error:", error); }
+    else { ok += batch.length; }
+  }
+
+  var res = document.getElementById("import-result");
+  res.style.display = "";
+  res.innerHTML = '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;font-size:12px;color:#16a34a;font-weight:600">' +
+    'Загружено: ' + ok + ' рейсов' + (fail > 0 ? ' · Ошибок: ' + fail : '') + '</div>';
+  document.getElementById("import-preview").style.display = "none";
+  importRows = [];
+}
+
+function downloadTemplate() {
+  var header = "Откуда;Куда;Промежуточные;Дни;Время отпр.;Время приб.;Цена;Телефон";
+  var example1 = "kyiv;warsaw;zhytomyr,lublin;Пн,Ср,Пт;18:00;08:00;1200 грн;+380501234567";
+  var example2 = "lviv;prague;krakow;Вт,Чт;20:00;10:00;1500 грн;+380671234567";
+  var csv = header + "\n" + example1 + "\n" + example2;
+  var blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "nashbus-import-template.csv";
+  a.click();
+}
+
 // ==================== Init ====================
 loadAll();
+loadCompaniesForImport();
 </script>
 </body>
 </html>
