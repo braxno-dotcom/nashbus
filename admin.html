@@ -130,6 +130,7 @@
         <span style="font-size:11px;font-weight:700;color:#1f2937" id="dispatcher-name"></span>
         <span style="font-size:9px;background:#e9d5ff;color:#7c3aed;font-weight:600;padding:2px 6px;border-radius:4px;margin-left:6px">Диспетчер</span>
         <span style="font-size:9px;color:#6b7280;margin-left:6px" id="dispatcher-company"></span>
+        <span style="font-size:9px;color:#6b7280;margin-left:6px" id="dispatcher-phone"></span>
       </div>
       <button onclick="dispatcherLogout()" style="font-size:10px;color:#dc2626;font-weight:500;background:none;border:none;cursor:pointer;text-decoration:underline">Выйти</button>
     </div>
@@ -355,6 +356,7 @@ async function checkDispatcherCode(code) {
     info: {
       id: data.id,
       name: data.driver_name,
+      phone: data.phone || "",
       companyId: data.company_id,
       driverIds: driverIds,
       allIds: (drivers || []).map(function(d) { return d.id; }),
@@ -1140,9 +1142,9 @@ function onDriverSelect() {
       document.getElementById("f-phone").value = dispatcherInfo.driverPhones[opt.value] || "";
     }
   } else if (dispatcherInfo) {
-    document.getElementById("f-carrier").value = "";
+    document.getElementById("f-carrier").value = dispatcherInfo.name || "";
     document.getElementById("f-carrier-id").value = dispatcherInfo.companyId;
-    document.getElementById("f-phone").value = "";
+    document.getElementById("f-phone").value = dispatcherInfo.phone || "";
   }
 }
 
@@ -1240,6 +1242,7 @@ async function initDispatcherPage() {
     bar.style.display = "flex";
     document.getElementById("dispatcher-name").textContent = dispatcherInfo.name;
     document.getElementById("dispatcher-company").textContent = dispatcherInfo.companyId;
+    document.getElementById("dispatcher-phone").textContent = dispatcherInfo.phone || "";
   }
 
   // Show driver management section
