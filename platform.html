@@ -61,7 +61,10 @@
     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17a2 2 0 002 2h4a2 2 0 002-2M8 17H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3M8 17v2m8-2v2M3 11h18M7 7h.01M17 7h.01"/></svg>
     NashBus
   </a>
-  <span class="pa-badge">PLATFORM ADMIN</span>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="pa-badge">PLATFORM ADMIN</span>
+    <button onclick="localStorage.removeItem('nashbus_platform_auth');location.reload()" style="font-size:9px;color:#f87171;background:none;border:none;cursor:pointer;text-decoration:underline">Выйти</button>
+  </div>
 </header>
 
 <div class="pa-body">
@@ -563,7 +566,9 @@ async function createCode() {
   var companyId = document.getElementById("code-company-id").value.trim() || null;
   var role = document.getElementById("code-role").value || "driver";
   var days = parseInt(document.getElementById("code-duration").value) || 365;
-  if (!name) { alert("Введите имя водителя"); return; }
+  if (!name && role !== 'dispatcher') { alert("Введите имя водителя"); return; }
+  if (role === 'dispatcher' && !companyId) { alert("Для диспетчера укажите ID компании"); return; }
+  if (role === 'dispatcher' && !name) name = "Диспетчер " + companyId;
 
   var code = generateCode();
   var expiresAt = new Date();

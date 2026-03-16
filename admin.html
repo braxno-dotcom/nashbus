@@ -133,6 +133,22 @@
       </div>
       <button onclick="dispatcherLogout()" style="font-size:10px;color:#dc2626;font-weight:500;background:none;border:none;cursor:pointer;text-decoration:underline">Выйти</button>
     </div>
+    <!-- Driver Management (dispatcher only) -->
+    <div id="driver-mgmt" style="display:none;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <h3 style="font-size:13px;font-weight:700;color:#1f2937;margin:0">Водители компании</h3>
+        <button onclick="toggleAddDriver()" id="btn-add-driver" style="font-size:10px;font-weight:600;background:#2563eb;color:#fff;border:none;border-radius:5px;padding:4px 10px;cursor:pointer">+ Добавить</button>
+      </div>
+      <div id="add-driver-form" style="display:none;background:#f9fafb;border-radius:8px;padding:10px;margin-bottom:8px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+          <input type="text" id="new-driver-name" placeholder="Имя водителя" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px">
+          <input type="tel" id="new-driver-phone" placeholder="Телефон" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:11px">
+        </div>
+        <button onclick="addDriver()" style="font-size:10px;font-weight:600;background:#16a34a;color:#fff;border:none;border-radius:5px;padding:5px 12px;cursor:pointer;width:100%">Сохранить водителя</button>
+      </div>
+      <div id="driver-list"></div>
+    </div>
+
     <h1 class="admin-title" data-i18n="title">Управление рейсами</h1>
     <p class="admin-sub" data-i18n="subtitle">Добавляйте, редактируйте и удаляйте рейсы. Изменения мгновенно появятся на главной странице.</p>
 
@@ -737,7 +753,7 @@ async function saveTrip(e) {
   // Use driver selector if available (dispatcher mode)
   var carrierId, carrierName;
   var driverSel = document.getElementById("f-driver-select");
-  if (dispatcherInfo && driverSel && driverSel.options.length > 0 && !document.getElementById("driver-select-wrap").style.display) {
+  if (dispatcherInfo && driverSel && driverSel.value) {
     carrierId = driverSel.value;
     carrierName = driverSel.options[driverSel.selectedIndex].textContent;
   } else {
@@ -1117,13 +1133,104 @@ async function sbLoadBookingCountsFiltered() {
 function onDriverSelect() {
   var sel = document.getElementById("f-driver-select");
   var opt = sel.options[sel.selectedIndex];
-  if (opt) {
+  if (opt && opt.value) {
     document.getElementById("f-carrier").value = opt.textContent;
     document.getElementById("f-carrier-id").value = opt.value;
     if (dispatcherInfo && dispatcherInfo.driverPhones) {
       document.getElementById("f-phone").value = dispatcherInfo.driverPhones[opt.value] || "";
     }
+  } else if (dispatcherInfo) {
+    document.getElementById("f-carrier").value = "";
+    document.getElementById("f-carrier-id").value = dispatcherInfo.companyId;
+    document.getElementById("f-phone").value = "";
   }
+}
+
+// === Driver management ===
+function toggleAddDriver() {
+  var form = document.getElementById("add-driver-form");
+  form.style.display = form.style.display === "none" ? "" : "none";
+}
+
+function renderDriverList() {
+  var list = document.getElementById("driver-list");
+  if (!dispatcherInfo || !dispatcherInfo.driverIds) { list.innerHTML = ""; return; }
+  list.innerHTML = dispatcherInfo.driverIds.map(function(id) {
+    var name = dispatcherInfo.driverNames[id] || id;
+    var phone = dispatcherInfo.driverPhones[id] || "";
+    return '<div style="display:flex;align-items:center;justify-content:space-between;background:#f9fafb;border-radius:6px;padding:6px 10px;margin-bottom:4px">' +
+      '<div><span style="font-size:12px;font-weight:600;color:#1f2937">' + name + '</span>' +
+      (phone ? '<span style="font-size:10px;color:#6b7280;margin-left:8px">' + phone + '</span>' : '') +
+      '</div>' +
+      '<button onclick="deleteDriver(\'' + id + '\',\'' + name.replace(/'/g, "\\'") + '\')" style="font-size:9px;color:#dc2626;background:#fef2f2;border:1px solid #fecaca;border-radius:4px;padding:2px 8px;cursor:pointer">Удалить</button>' +
+    '</div>';
+  }).join("");
+}
+
+async function addDriver() {
+  var name = document.getElementById("new-driver-name").value.trim();
+  var phone = document.getElementById("new-driver-phone").value.trim();
+  if (!name) { alert("Введите имя водителя"); return; }
+
+  var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  var code = "";
+  for (var i = 0; i < 8; i++) { if (i === 4) code += "-"; code += chars.charAt(Math.floor(Math.random() * chars.length)); }
+
+  var expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 365);
+
+  var { data, error } = await sb.from("driver_codes").insert({
+    code: code, driver_name: name, phone: phone,
+    expires_at: expiresAt.toISOString(), is_active: true,
+    role: "driver", company_id: dispatcherInfo.companyId
+  }).select().single();
+
+  if (error) { alert("Ошибка: " + error.message); return; }
+
+  // Update local state
+  dispatcherInfo.driverIds.push(data.id);
+  dispatcherInfo.allIds.push(data.id);
+  dispatcherInfo.driverNames[data.id] = name;
+  dispatcherInfo.driverPhones[data.id] = phone;
+  localStorage.setItem(DISPATCHER_AUTH_KEY, JSON.stringify(dispatcherInfo));
+
+  // Update UI
+  document.getElementById("new-driver-name").value = "";
+  document.getElementById("new-driver-phone").value = "";
+  document.getElementById("add-driver-form").style.display = "none";
+  renderDriverList();
+  refreshDriverSelector();
+}
+
+async function deleteDriver(id, name) {
+  if (!confirm("Удалить водителя " + name + "? Его рейсы останутся, но он потеряет доступ.")) return;
+
+  var { error } = await sb.from("driver_codes").update({ is_active: false }).eq("id", id);
+  if (error) { alert("Ошибка: " + error.message); return; }
+
+  // Update local state
+  dispatcherInfo.driverIds = dispatcherInfo.driverIds.filter(function(d) { return d !== id; });
+  dispatcherInfo.allIds = dispatcherInfo.allIds.filter(function(d) { return d !== id; });
+  delete dispatcherInfo.driverNames[id];
+  delete dispatcherInfo.driverPhones[id];
+  localStorage.setItem(DISPATCHER_AUTH_KEY, JSON.stringify(dispatcherInfo));
+
+  renderDriverList();
+  refreshDriverSelector();
+}
+
+function refreshDriverSelector() {
+  var selectEl = document.getElementById("f-driver-select");
+  if (!selectEl) return;
+  selectEl.innerHTML = '<option value="">— Не выбран —</option>';
+  dispatcherInfo.driverIds.forEach(function(id) {
+    var name = dispatcherInfo.driverNames[id] || id;
+    var opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = name;
+    selectEl.appendChild(opt);
+  });
+  onDriverSelect();
 }
 
 async function initDispatcherPage() {
@@ -1135,10 +1242,14 @@ async function initDispatcherPage() {
     document.getElementById("dispatcher-company").textContent = dispatcherInfo.companyId;
   }
 
-  // Show driver selector, hide carrier text inputs
-  if (dispatcherInfo && dispatcherInfo.driverIds && dispatcherInfo.driverIds.length > 0) {
-    var selectEl = document.getElementById("f-driver-select");
-    selectEl.innerHTML = "";
+  // Show driver management section
+  document.getElementById("driver-mgmt").style.display = "";
+  renderDriverList();
+
+  // Show driver selector (optional — dispatcher can create trips without picking a driver)
+  var selectEl = document.getElementById("f-driver-select");
+  selectEl.innerHTML = '<option value="">— Не выбран —</option>';
+  if (dispatcherInfo.driverIds) {
     dispatcherInfo.driverIds.forEach(function(id) {
       var name = dispatcherInfo.driverNames[id] || id;
       var opt = document.createElement("option");
@@ -1146,12 +1257,11 @@ async function initDispatcherPage() {
       opt.textContent = name;
       selectEl.appendChild(opt);
     });
-    document.getElementById("driver-select-wrap").style.display = "";
-    document.getElementById("carrier-wrap").style.display = "none";
-    document.getElementById("carrier-id-wrap").style.display = "none";
-    // Pre-fill carrier fields
-    onDriverSelect();
   }
+  document.getElementById("driver-select-wrap").style.display = "";
+  // Pre-fill company info
+  document.getElementById("f-carrier-id").value = dispatcherInfo.companyId;
+  onDriverSelect();
 
   // Load filtered data (trips first, then bookings which depend on trips)
   trips = await sbLoadTripsFiltered();
