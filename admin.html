@@ -1116,8 +1116,10 @@ setupAC("f-waypoints", "ac-wp", true);
 
 // Filtered loaders for dispatcher
 async function sbLoadTripsFiltered() {
-  if (dispatcherInfo && dispatcherInfo.allIds && dispatcherInfo.allIds.length > 0) {
-    var { data, error } = await sb.from("routes").select("*").in("carrier_id", dispatcherInfo.allIds).order("created_at");
+  if (dispatcherInfo) {
+    var ids = (dispatcherInfo.allIds || []).slice();
+    if (dispatcherInfo.companyId) ids.push(dispatcherInfo.companyId);
+    var { data, error } = await sb.from("routes").select("*").in("carrier_id", ids).order("created_at");
     if (error) { console.error("Load error:", error); return []; }
     return data.map(dbToTrip);
   }
